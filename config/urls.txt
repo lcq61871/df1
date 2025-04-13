@@ -4,6 +4,11 @@ https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt
 http://4gtv.mumi.rip:9877/index.m3u8
 https://live.iptv365.org/live.txt
 https://mytvb.netlify.app/mytvsuperA.m3u
+http://aktv.space/live.m3u
+https://qu.ax/vUBde.txt
+https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt
+https://raw.githubusercontent.com/alenin-zhang/IPTV/refs/heads/main/LITV.txt
+https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.txt
 https://github.moeyy.xyz//https://raw.githubusercontent.com/mlvjfchen/TV/refs/heads/main/output/result.txt
 https://9239.kstore.space/jisuTV2.txt
 http://175.178.251.183:6689/live.txt
