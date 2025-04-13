@@ -30,7 +30,7 @@ if os.path.exists(output_file):
 try:
     with open('iptv_list.txt', 'r', encoding='utf-8') as f:
         all_lines.extend(f.readlines())
-    print("成功读取本地 iptv_list.txt 文件，数据行数：", len(all_lines))
+    print(f"成功读取本地 iptv_list.txt 文件，数据行数：{len(all_lines)}")
 except FileNotFoundError:
     print("本地 iptv_list.txt 文件未找到，将仅使用远程源")
 
@@ -73,6 +73,8 @@ if not target_channels:
 target_set = set(name.lower() for name in target_channels)
 grouped_streams = defaultdict(list)
 
+print(f"正在处理 {len(all_lines)} 行数据...")
+
 for line in all_lines:
     line = line.strip()
     if not line or 'http' not in line:
@@ -90,6 +92,9 @@ for line in all_lines:
         not any(keyword in channel_name for keyword in exclude_keywords)
     ):
         grouped_streams[channel_name].append(stream_url)
+
+# 输出调试信息
+print(f"共找到 {len(grouped_streams)} 个符合条件的频道")
 
 # 写入输出文件
 if grouped_streams:
