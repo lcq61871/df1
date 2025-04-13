@@ -3,16 +3,15 @@ import re
 import os
 from collections import defaultdict
 
-# 读取 moban.txt 文件中的需要保留的频道关键词
-def load_target_channels(moban_file):
+# 需要保留的频道关键词（精确匹配）
+try:
+    with open('moban.txt', 'r', encoding='utf-8') as f:
+        target_channels = [line.strip() for line in f.readlines() if line.strip()]
+    print("成功读取 moban.txt 文件")
+    print("加载的频道关键词:", target_channels)
+except FileNotFoundError:
+    print("moban.txt 文件未找到")
     target_channels = []
-    try:
-        with open(moban_file, 'r', encoding='utf-8') as f:
-            target_channels = [line.strip() for line in f.readlines() if line.strip()]
-        print(f"成功从 {moban_file} 文件读取 {len(target_channels)} 个频道关键词")
-    except FileNotFoundError:
-        print(f"文件 {moban_file} 未找到，请检查路径和文件名")
-    return target_channels
 
 # 要排除的关键词（模糊匹配）
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
@@ -21,16 +20,15 @@ exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 all_lines = []
 
 # 删除旧的 filtered_streams.txt 文件
-output_file = 'filtered_streams.txt'
-if os.path.exists(output_file):
-    os.remove(output_file)
+if os.path.exists('filtered_streams.txt'):
+    os.remove('filtered_streams.txt')
     print("已删除旧的 filtered_streams.txt 文件")
 
 # 读取本地文件
 try:
     with open('iptv_list.txt', 'r', encoding='utf-8') as f:
         all_lines.extend(f.readlines())
-    print(f"成功读取本地 iptv_list.txt 文件，数据行数：{len(all_lines)}")
+    print("成功读取本地 iptv_list.txt 文件")
 except FileNotFoundError:
     print("本地 iptv_list.txt 文件未找到，将仅使用远程源")
 
@@ -61,19 +59,9 @@ for url in remote_urls:
     except Exception as e:
         print(f"获取 {url} 失败: {e}")
 
-# 加载 moban.txt 文件并获取频道关键词
-target_channels = load_target_channels('moban.txt')
-
-# 如果没有从 moban.txt 获取到关键词，则退出
-if not target_channels:
-    print("没有从 moban.txt 文件获取到需要保留的频道关键词。程序终止。")
-    exit()
-
 # 精确匹配并归类
 target_set = set(name.lower() for name in target_channels)
 grouped_streams = defaultdict(list)
-
-print(f"正在处理 {len(all_lines)} 行数据...")
 
 for line in all_lines:
     line = line.strip()
@@ -87,23 +75,22 @@ for line in all_lines:
     channel_name = match.group(1).strip()
     stream_url = match.group(2).strip()
 
+    print(f"正在处理频道: {channel_name}, URL: {stream_url}")  # 打印调试信息
+
+    # 精确匹配需要保留的频道，并排除不需要的关键词
     if (
         channel_name.lower() in target_set and
         not any(keyword in channel_name for keyword in exclude_keywords)
     ):
         grouped_streams[channel_name].append(stream_url)
 
-# 输出调试信息
-print(f"共找到 {len(grouped_streams)} 个符合条件的频道")
-
 # 写入输出文件
 if grouped_streams:
-    with open(output_file, 'w', encoding='utf-8') as out_file:
+    with open('filtered_streams.txt', 'w', encoding='utf-8') as out_file:
         out_file.write("abc频道,#genre#\n")
-        # 遍历并按频道名称写入所有匹配的流
         for channel in sorted(grouped_streams.keys()):
             for url in grouped_streams[channel]:
                 out_file.write(f"{channel}, {url}\n")
-    print(f"筛选完成，已写入 {output_file}")
+    print("筛选完成，已写入 filtered_streams.txt")
 else:
     print("未找到符合条件的频道")
