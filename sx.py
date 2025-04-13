@@ -26,9 +26,10 @@ for line in lines:
         channel_name, stream_url = parts
         # 如果频道名称在目标列表中，则添加到目标直播源列表
         if any(target_channel in channel_name for target_channel in target_channels):
+            print(f"Found matching channel: {channel_name}")  # 输出找到的频道
             target_streams.append(f'{channel_name}: {stream_url}')
 
-# 输出到 filtered_streams.txt
+# 如果找到目标频道，输出到 filtered_streams.txt
 output_file = 'filtered_streams.txt'
 try:
     if target_streams:
