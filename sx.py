@@ -20,9 +20,8 @@ exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 all_lines = []
 
 # 删除旧的 filtered_streams.txt 文件
-output_file = 'filtered_streams.txt'
-if os.path.exists(output_file):
-    os.remove(output_file)
+if os.path.exists('filtered_streams.txt'):
+    os.remove('filtered_streams.txt')
     print("已删除旧的 filtered_streams.txt 文件")
 
 # 读取本地文件
@@ -34,36 +33,41 @@ except FileNotFoundError:
     print("本地 iptv_list.txt 文件未找到，将仅使用远程源")
 
 # 远程源列表
-urls = [
-    'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
-    'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/live_ipv4.txt'
+remote_urls = [
+    'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u',
+    'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u',
+    'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/GDIPTV.m3u',
+    'https://raw.githubusercontent.com/alenin-zhang/IPTV/refs/heads/main/LITV.txt'
 ]
 
-# 获取远程源数据
-for url in urls:
+# 拉取并解析远程源
+for url in remote_urls:
     try:
+        print(f"正在获取远程数据: {url}")
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
-            all_lines.extend(response.text.splitlines())
-            print(f"成功获取远程源: {url}，数据行数：{len(response.text.splitlines())}")
+            lines = response.text.splitlines()
+            for i in range(len(lines) - 1):
+                if lines[i].startswith('#EXTINF') and lines[i + 1].startswith('http'):
+                    match = re.search(r',(.+)', lines[i])
+                    if match:
+                        channel = match.group(1).strip()
+                        stream_url = lines[i + 1].strip()
+                        all_lines.append(f'{channel} {stream_url}')
         else:
-            print(f"远程源访问失败: {url} - 状态码: {response.status_code}")
+            print(f"{url} 获取失败，状态码: {response.status_code}")
     except Exception as e:
-        print(f"获取远程源失败 {url}: {e}")
+        print(f"获取 {url} 失败: {e}")
 
-# 显示获取到的所有数据行数
-print(f"总共获取到 {len(all_lines)} 行数据")
-
-# 精确匹配目标频道
+# 精确匹配并归类
 target_set = set(name.lower() for name in target_channels)
-target_streams = defaultdict(list)
+grouped_streams = defaultdict(list)
 
 for line in all_lines:
     line = line.strip()
     if not line or 'http' not in line:
         continue
 
-    # 使用正则匹配频道名称和 URL
     match = re.match(r'(.+?)\s+(https?://\S+)', line)
     if not match:
         continue
@@ -71,24 +75,19 @@ for line in all_lines:
     channel_name = match.group(1).strip()
     stream_url = match.group(2).strip()
 
-    # 筛选匹配的频道
     if (
         channel_name.lower() in target_set and
-        not any(bad in channel_name for bad in exclude_keywords)
+        not any(keyword in channel_name for keyword in exclude_keywords)
     ):
-        target_streams[channel_name].append(stream_url)
-
-# 显示匹配到的频道数量
-print(f"匹配到 {len(target_streams)} 个频道")
+        grouped_streams[channel_name].append(stream_url)
 
 # 写入输出文件
-if target_streams:
-    with open(output_file, 'w', encoding='utf-8') as out_file:
+if grouped_streams:
+    with open('filtered_streams.txt', 'w', encoding='utf-8') as out_file:
         out_file.write("abc频道,#genre#\n")
-        # 遍历并按频道名称写入所有匹配的流
-        for channel, urls in target_streams.items():
-            for url in urls:
+        for channel in sorted(grouped_streams.keys()):
+            for url in grouped_streams[channel]:
                 out_file.write(f"{channel}, {url}\n")
-    print(f"筛选完成，已写入 {output_file}")
+    print("筛选完成，已写入 filtered_streams.txt")
 else:
     print("未找到符合条件的频道")
