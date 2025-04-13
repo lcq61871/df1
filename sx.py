@@ -1,11 +1,5 @@
 import requests
 import re
-import os
-# 删除旧的 filtered_streams.txt（如果存在）
-if os.path.exists('filtered_streams.txt'):
-    os.remove('filtered_streams.txt')
-    print("已删除旧的 filtered_streams.txt 文件")
-
 
 # 需要保留的频道关键词（精确匹配）
 target_channels = [
@@ -14,7 +8,7 @@ target_channels = [
     'CCTV央视文化精品[1920x1080]',
     'CCTV高尔夫·网球[1920x1080]',
     'CCTV风云足球[1920x1080]',
-    'JJ斗地主', '梅州-1', 'TVB星河台'
+    '湖南都市', '湖南卫视', 'TVB星河台'
 ]
 
 # 要排除的关键词（模糊匹配）
