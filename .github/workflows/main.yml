@@ -1,3 +1,4 @@
+
 name: dfyuan
 
 on:
@@ -34,6 +35,8 @@ jobs:
 
       - name: 提交更改
         run: |
+          git config --local user.email "tuanlang@196.com"
+          git config --local user.name "tjtj"
           git add .
           git commit *.txt -m "Add generated file"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
