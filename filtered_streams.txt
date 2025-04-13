@@ -2,13 +2,57 @@ abc频道,#genre#
 CCTV1, https://hyf000.eu.org/PBS/cctv1.m3u8
 CCTV1, https://hyf.serv00.net/鹏博士.php?id=cctv1
 CCTV1, http://36.105.100.208:35455/gaoma/cctv1.m3u8
+CCTV1, http://114.254.150.183:23234/udp/239.3.1.129:8008
+CCTV1, http://114.254.146.200:23234/udp/239.3.1.129:8008
+CCTV1, http://114.254.35.75:8888/udp/239.3.1.129:8008
+CCTV1, http://114.254.35.75:8888/udp/239.3.1.129:8008
+CCTV1, http://114.254.146.200:23234/udp/239.3.1.129:8008
+CCTV1, http://114.254.150.183:23234/udp/239.3.1.129:8008
+CCTV1, http://tvgslb.hn.chinamobile.com:8089/180000001002/00000000000000020000000000182562/main.m3u8?stbid=
 CCTV13, https://hyf000.eu.org/PBS/cctv13.m3u8
 CCTV13, https://hyf.serv00.net/鹏博士.php?id=cctv13
 CCTV13, http://23.106.158.19:35455/gaoma/cctv13.m3u8
+CCTV13, http://114.254.35.75:8888/udp/239.3.1.124:8128
+CCTV13, http://114.254.146.200:23234/udp/239.3.1.124:8128
+CCTV13, http://114.254.150.183:23234/udp/239.3.1.124:8128
+CCTV13, http://tvgslb.hn.chinamobile.com:8089/180000001002/00000000000000020000000000182324/main.m3u8?stbid=
 CCTV2, https://hyf000.eu.org/PBS/cctv2.m3u8
 CCTV2, https://hyf.serv00.net/鹏博士.php?id=cctv2
 CCTV2, http://huashetou.fun:35455/gaoma/cctv2.m3u8
+CCTV2, http://114.254.35.75:8888/udp/239.3.1.60:8084
+CCTV2, http://114.254.146.200:23234/udp/239.3.1.60:8084
+CCTV2, http://114.254.150.183:23234/udp/239.3.1.60:8084
+CCTV2, http://114.254.35.75:8888/udp/239.3.1.60:8084
+CCTV2, http://114.254.146.200:23234/udp/239.3.1.60:8084
+CCTV2, http://114.254.150.183:23234/udp/239.3.1.60:8084
+CCTV2, http://tvgslb.hn.chinamobile.com:8089/180000001002/00000000000000020000000000182301/main.m3u8?stbid=
+CCTV世界地理[1920x1080], http://116.30.251.207:8088/udp/239.253.43.24:5146
+CCTV世界地理[1920x1080], http://116.30.251.207:8088/udp/239.253.43.7:5146
+CCTV世界地理[1920x1080], http://113.104.184.17:7088/udp/239.253.43.24:5146
+CCTV世界地理[1920x1080], http://113.104.184.17:7088/udp/239.253.43.7:5146
+CCTV央视文化精品[1920x1080], http://116.30.251.207:8088/udp/239.253.43.13:5146
+CCTV央视文化精品[1920x1080], http://116.30.251.207:8088/udp/239.253.43.27:5146
+CCTV央视文化精品[1920x1080], http://113.104.184.17:7088/udp/239.253.43.13:5146
+CCTV央视文化精品[1920x1080], http://113.104.184.17:7088/udp/239.253.43.27:5146
+EYETV 旅游, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
+EYETV 旅游, http://wdy.601417.eu.org:55007/4gtv-live120/index.m3u8
+FASHION TV, https://fash2043.cloudycdn.services/slive/ftv_ftv_4k_hevc_73d_42080_default_466_hls.smil/playlist.m3u8
+Playboy Plus, https://hyf000.eu.org/live/80947108.php?id=102
+Playboy Plus, https://hyf000.eu.org/live/80947108.php?id=102
+SUN MUSIC, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
+Sun TV HD, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
 亞洲旅遊, http://37.27.111.214:8080/live/10/hls.m3u8
+亞洲旅遊, http://4gtv.mumi.rip:9877/250/4gtv-4gtv076/index.m3u8
+亞洲旅遊, http://192.168.31.4:1216/litv.php?token=jake3&id=litv-longturn17
+欧美艺术, http://A/ku9/js/159169.js?ip=167.114.175.6&id=607e1f9f0004af8edb961118303e4935
 湖南卫视, https://hyf000.eu.org/PBS/hunws.m3u8
 湖南卫视, https://hyf.serv00.net/鹏博士.php?id=hunws
 湖南卫视, http://211.72.65.236:8573/.m3u8
+湖南卫视, http://114.254.146.200:23234/udp/239.3.1.132:8012
+湖南卫视, http://114.254.35.75:8888/udp/239.3.1.132:8012
+湖南卫视, http://114.254.146.200:23234/udp/239.3.1.132:8012
+湖南卫视, http://114.254.150.183:23234/udp/239.3.1.132:8012
+湖南卫视, http://tvgslb.hn.chinamobile.com:8089/180000001002/00000001000000000099000000193885/main.m3u8?stbid=
+湖南都市, http://tvgslb.hn.chinamobile.com:8089/180000001002/00000000000000020000000000182308/main.m3u8?stbid=
+美国家庭, http://A/ku9/js/159169.js?ip=167.114.175.6&id=5ff7341b000bdc38cc94ba7e6b763297
+美食星球, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
