@@ -23,21 +23,36 @@ exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 # 保存所有 IPTV 数据行
 all_lines = []
 
-# 读取本地文件
+# 读取本地文件，增加调试信息
 try:
-    with open('iptv_list.txt', 'r', encoding='utf-8') as f:
-        all_lines.extend(f.readlines())
-except FileNotFoundError:
-    print("本地 iptv_list.txt 文件未找到，将仅使用远程源")
+    if os.path.exists(local_file):
+        with open(local_file, 'r', encoding='utf-8') as f:
+            all_lines.extend(f.readlines())
+        print(f"成功读取本地文件 {local_file}")
+    else:
+        print(f"本地文件 {local_file} 不存在")
+except Exception as e:
+    print(f"读取本地文件时发生错误: {e}")
 
 # 远程源 1
 url1 = 'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt'
+print("正在从远程 URL 1 获取数据...")
 try:
     response1 = requests.get(url1, timeout=10)
     if response1.status_code == 200:
         all_lines.extend(response1.text.splitlines())
+        print(f"从 {url1} 获取数据成功, 状态码: {response1.status_code}")
+    else:
+        print(f"从 {url1} 获取数据失败, 状态码: {response1.status_code}")
 except Exception as e:
     print(f"获取 {url1} 失败: {e}")
+
+# 查看最终收集到的数据
+print(f"收集到 {len(all_lines)} 行数据")
+
+# 如果数据为空，则提示用户
+if not all_lines:
+    print("没有成功获取数据，请检查文件路径或远程 URL 是否有效。")
 
 # 远程源 2（M3U 格式）
 url2 = 'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u'
