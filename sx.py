@@ -50,18 +50,36 @@ for url in remote_urls:
         print(f"正在获取远程数据: {url}")
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
+            print(f"成功获取数据，状态码: {response.status_code}")
             lines = response.text.splitlines()
-            for i in range(len(lines) - 1):
-                if lines[i].startswith('#EXTINF') and lines[i + 1].startswith('http'):
-                    match = re.search(r',(.+)', lines[i])
-                    if match:
-                        channel = match.group(1).strip()
-                        stream_url = lines[i + 1].strip()
+
+            # 判断文件格式（.m3u 文件或 .txt 文件）
+            if url.endswith('.m3u'):
+                print(f"正在解析 m3u 文件: {url}")
+                for i in range(len(lines) - 1):
+                    if lines[i].startswith('#EXTINF') and lines[i + 1].startswith('http'):
+                        match = re.search(r',(.+)', lines[i])
+                        if match:
+                            channel = match.group(1).strip()
+                            stream_url = lines[i + 1].strip()
+                            all_lines.append(f'{channel} {stream_url}')
+            elif url.endswith('.txt'):
+                print(f"正在解析 txt 文件: {url}")
+                # 假设 txt 文件每行都是“频道名称 URL”的格式
+                for line in lines:
+                    parts = line.split(' ')
+                    if len(parts) == 2:
+                        channel, stream_url = parts
                         all_lines.append(f'{channel} {stream_url}')
+            else:
+                print(f"不支持的文件格式: {url}")
         else:
             print(f"{url} 获取失败，状态码: {response.status_code}")
     except Exception as e:
         print(f"获取 {url} 失败: {e}")
+
+# 打印获取到的频道信息
+print(f"共获取到 {len(all_lines)} 条频道信息")
 
 # 精确匹配并归类
 target_set = set(name.lower() for name in target_channels)
