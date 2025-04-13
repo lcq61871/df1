@@ -17,30 +17,33 @@ exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 # 保存所有 IPTV 数据行
 all_lines = []
 
-# 读取本地文件
-try:
-    with open('iptv_list.txt', 'r', encoding='utf-8') as f:
-        all_lines.extend(f.readlines())
-except FileNotFoundError:
-    print("本地 iptv_list.txt 文件未找到，将仅使用远程源")
+# 远程源 URL
+url1 = 'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u'
+url2 = 'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u'
+url3 = 'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/GDIPTV.m3u'
 
-# 远程源 1
-url1 = 'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt'
+# 拉取并处理远程源1
 try:
     response1 = requests.get(url1, timeout=10)
     if response1.status_code == 200:
-        all_lines.extend(response1.text.splitlines())
+        m3u_lines = response1.text.splitlines()
+        for i in range(0, len(m3u_lines) - 1):
+            if m3u_lines[i].startswith('#EXTINF') and m3u_lines[i + 1].startswith('http'):
+                match = re.search(r',(.+)', m3u_lines[i])
+                if match:
+                    channel = match.group(1).strip()
+                    url = m3u_lines[i + 1].strip()
+                    all_lines.append(f'{channel} {url}')
 except Exception as e:
     print(f"获取 {url1} 失败: {e}")
 
-# 远程源 2（M3U 格式）
-url2 = 'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u'
+# 拉取并处理远程源2
 try:
     response2 = requests.get(url2, timeout=10)
     if response2.status_code == 200:
         m3u_lines = response2.text.splitlines()
         for i in range(0, len(m3u_lines) - 1):
-            if m3u_lines[i].startswith('#EXTINF') and m3u_lines[i+1].startswith('http'):
+            if m3u_lines[i].startswith('#EXTINF') and m3u_lines[i + 1].startswith('http'):
                 match = re.search(r',(.+)', m3u_lines[i])
                 if match:
                     channel = match.group(1).strip()
@@ -48,6 +51,21 @@ try:
                     all_lines.append(f'{channel} {url}')
 except Exception as e:
     print(f"获取 {url2} 失败: {e}")
+
+# 拉取并处理远程源3
+try:
+    response3 = requests.get(url3, timeout=10)
+    if response3.status_code == 200:
+        m3u_lines = response3.text.splitlines()
+        for i in range(0, len(m3u_lines) - 1):
+            if m3u_lines[i].startswith('#EXTINF') and m3u_lines[i + 1].startswith('http'):
+                match = re.search(r',(.+)', m3u_lines[i])
+                if match:
+                    channel = match.group(1).strip()
+                    url = m3u_lines[i + 1].strip()
+                    all_lines.append(f'{channel} {url}')
+except Exception as e:
+    print(f"获取 {url3} 失败: {e}")
 
 # 进行精确匹配过滤
 target_set = set(name.lower() for name in target_channels)
@@ -73,9 +91,12 @@ for line in all_lines:
 
 # 写入输出文件
 if target_streams:
-    with open('filtered_streams.txt', 'w', encoding='utf-8') as out_file:
-        out_file.write("abc频道,#genre#\n")
-        out_file.write("\n".join(target_streams))
-    print("筛选完成，已写入 filtered_streams.txt")
+    try:
+        with open('filtered_streams.txt', 'w', encoding='utf-8') as out_file:
+            out_file.write("abc频道,#genre#\n")
+            out_file.write("\n".join(target_streams))
+        print("筛选完成，已写入 filtered_streams.txt")
+    except Exception as e:
+        print(f"写入 filtered_streams.txt 失败: {e}")
 else:
     print("未找到符合条件的频道")
