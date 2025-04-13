@@ -2,10 +2,16 @@ name: dfyuan
 
 on:
   schedule:
-    - cron: '0 ,06,18, * * *'
+    # 每天的 10:00 PM UTC（相当于上海时间的 6:00 AM）
+    - cron: '0 22 * * *'
+    # 每天的 10:00 AM UTC（相当于上海时间的 6:00 PM）
+    - cron: '0 10 * * *'
+    # 每天的 4:00 PM UTC（相当于上海时间的 12:00 AM）
+    - cron: '0 16 * * *'
   push:
     branches:
       - main
+  workflow_dispatch:  # 允许手动触发工作流
 
 jobs:
   build:
