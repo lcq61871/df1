@@ -30,28 +30,28 @@ try:
     response1 = requests.get(url1, timeout=10)
     if response1.status_code == 200:
         all_lines.extend(response1.text.splitlines())
-    else:
-        print(f"从 {url1} 获取数据失败, 状态码: {response1.status_code}")
 except Exception as e:
     print(f"获取 {url1} 失败: {e}")
 
-# 新增的远程源 3
-url3 = 'https://raw.githubusercontent.com/alenin-zhang/IPTV/refs/heads/main/LITV.txt'
+# 远程源 2（M3U 格式）
+url2 = 'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u'
 try:
-    response3 = requests.get(url3, timeout=10)
-    if response3.status_code == 200:
-        all_lines.extend(response3.text.splitlines())
-        print(f"从 {url3} 获取数据成功, 状态码: {response3.status_code}")
-    else:
-        print(f"从 {url3} 获取数据失败, 状态码: {response3.status_code}")
+    response2 = requests.get(url2, timeout=10)
+    if response2.status_code == 200:
+        m3u_lines = response2.text.splitlines()
+        for i in range(0, len(m3u_lines) - 1):
+            if m3u_lines[i].startswith('#EXTINF') and m3u_lines[i+1].startswith('http'):
+                match = re.search(r',(.+)', m3u_lines[i])
+                if match:
+                    channel = match.group(1).strip()
+                    url = m3u_lines[i + 1].strip()
+                    all_lines.append(f'{channel} {url}')
 except Exception as e:
-    print(f"获取 {url3} 失败: {e}")
+    print(f"获取 {url2} 失败: {e}")
 
 # 进行精确匹配过滤
 target_set = set(name.lower() for name in target_channels)
 target_streams = []
-
-print("开始筛选符合条件的频道...")
 
 for line in all_lines:
     line = line.strip()
@@ -69,16 +69,13 @@ for line in all_lines:
         channel_name.lower() in target_set and
         not any(bad in channel_name for bad in exclude_keywords)
     ):
-        print(f"匹配到频道: {channel_name}, URL: {stream_url}")  # 打印匹配的频道信息
         target_streams.append(f"{channel_name}, {stream_url}")
 
+# 写入输出文件
 if target_streams:
-    try:
-        with open('filtered_streams.txt', 'w', encoding='utf-8') as out_file:
-            out_file.write("abc频道,#genre#\n")
-            out_file.write("\n".join(target_streams))
-        print("筛选完成，已写入 filtered_streams.txt")
-    except Exception as e:
-        print(f"写入 filtered_streams.txt 失败: {e}")
+    with open('filtered_streams.txt', 'w', encoding='utf-8') as out_file:
+        out_file.write("abc频道,#genre#\n")
+        out_file.write("\n".join(target_streams))
+    print("筛选完成，已写入 filtered_streams.txt")
 else:
     print("未找到符合条件的频道")
