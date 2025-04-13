@@ -35,10 +35,11 @@ for line in lines:
     parts = line.strip().split(',', 1)  # 按逗号分割频道名称和URL
     if len(parts) == 2:
         channel_name, stream_url = parts
-        # 如果频道名称在目标列表中，则添加到目标直播源列表
-        if any(target_channel in channel_name for target_channel in target_channels):
+        # 使用完全匹配来检查频道名称是否在目标列表中
+        if channel_name in target_channels:
             print(f"Found matching channel: {channel_name}")  # 输出找到的频道
-            target_streams.append(f'{channel_name}: {stream_url}')
+            # 改成逗号格式
+            target_streams.append(f'{channel_name}, {stream_url}')
         else:
             print(f"No match for: {channel_name}")  # 输出未匹配的频道
     else:
