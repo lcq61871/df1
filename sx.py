@@ -30,9 +30,22 @@ try:
     response1 = requests.get(url1, timeout=10)
     if response1.status_code == 200:
         all_lines.extend(response1.text.splitlines())
+    else:
+        print(f"从 {url1} 获取数据失败, 状态码: {response1.status_code}")
 except Exception as e:
     print(f"获取 {url1} 失败: {e}")
 
+# 远程源 2
+url3 = 'https://raw.githubusercontent.com/alenin-zhang/IPTV/refs/heads/main/LITV.txt'
+try:
+    response3 = requests.get(url3, timeout=10)
+    if response3.status_code == 200:
+        all_lines.extend(response3.text.splitlines())
+        print(f"从 {url3} 获取数据成功, 状态码: {response3.status_code}")
+    else:
+        print(f"从 {url3} 获取数据失败, 状态码: {response3.status_code}")
+except Exception as e:
+    print(f"获取 {url3} 失败: {e}")
 
 # 进行精确匹配过滤
 target_set = set(name.lower() for name in target_channels)
@@ -48,7 +61,7 @@ for line in all_lines:
         continue
 
     channel_name = match.group(1).strip()
-
+    stream_url = match.group(2).strip()
 
     if (
         channel_name.lower() in target_set and
