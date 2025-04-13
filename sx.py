@@ -35,7 +35,7 @@ try:
 except Exception as e:
     print(f"获取 {url1} 失败: {e}")
 
-# 远程源 2
+# 新增的远程源 3
 url3 = 'https://raw.githubusercontent.com/alenin-zhang/IPTV/refs/heads/main/LITV.txt'
 try:
     response3 = requests.get(url3, timeout=10)
@@ -50,6 +50,8 @@ except Exception as e:
 # 进行精确匹配过滤
 target_set = set(name.lower() for name in target_channels)
 target_streams = []
+
+print("开始筛选符合条件的频道...")
 
 for line in all_lines:
     line = line.strip()
@@ -67,13 +69,16 @@ for line in all_lines:
         channel_name.lower() in target_set and
         not any(bad in channel_name for bad in exclude_keywords)
     ):
+        print(f"匹配到频道: {channel_name}, URL: {stream_url}")  # 打印匹配的频道信息
         target_streams.append(f"{channel_name}, {stream_url}")
 
-# 写入输出文件
 if target_streams:
-    with open('filtered_streams.txt', 'w', encoding='utf-8') as out_file:
-        out_file.write("abc频道,#genre#\n")
-        out_file.write("\n".join(target_streams))
-    print("筛选完成，已写入 filtered_streams.txt")
+    try:
+        with open('filtered_streams.txt', 'w', encoding='utf-8') as out_file:
+            out_file.write("abc频道,#genre#\n")
+            out_file.write("\n".join(target_streams))
+        print("筛选完成，已写入 filtered_streams.txt")
+    except Exception as e:
+        print(f"写入 filtered_streams.txt 失败: {e}")
 else:
     print("未找到符合条件的频道")
