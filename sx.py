@@ -14,7 +14,7 @@ except Exception as e:
 
 
 # 定义需要抓取的频道名称
-target_channels = ['cctv1', 'cctv2', 'cctv3', '湖南卫视', '甘肃卫视']
+target_channels = ['CCTV1', 'CCTV2', 'CCTV3', '湖南卫视', '甘肃卫视']
 
 # 打开iptv_list.txt文件并读取
 with open('iptv_list.txt', 'r', encoding='utf-8') as file:
