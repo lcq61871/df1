@@ -18,7 +18,7 @@ exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 all_lines = []
 
 # 远程源 URL
-url1 = 'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u'
+url1 = 'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/GDIPTV-SP.m3u'
 url2 = 'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u'
 url3 = 'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/GDIPTV.m3u'
 
