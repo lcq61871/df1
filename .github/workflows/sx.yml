@@ -35,10 +35,12 @@ jobs:
 
       - name: Check if filtered_streams.txt was generated
         run: |
+          echo "Checking if filtered_streams.txt exists..."
           if [ -f filtered_streams.txt ]; then
             echo "filtered_streams.txt generated successfully."
           else
-            echo "filtered_streams.txt was not generated."
+            echo "filtered_streams.txt was not generated. Checking contents of current directory:"
+            ls -l
             exit 1
           fi
 
