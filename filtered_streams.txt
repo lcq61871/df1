@@ -1,4 +1,5 @@
 abc频道,#genre#
+JJ斗地主, https://hyf.serv00.net/fg/JJ斗地主.php
 TVB星河台, http://v2h.jdshipin.com/xinghe/xinghe.stream/chunklist.m3u8
 TVB星河台, https://edge6a.v2h-cdn.com/xinghe/xinghe.stream/chunklist.m3u8
 CCTV1, https://hyf000.eu.org/PBS/cctv1.m3u8
