@@ -9,12 +9,13 @@ target_channels = [
     'CCTV世界地理[1920x1080]',
     'CCTV央视文化精品[1920x1080]',
     '湖南卫视', '湖南都市', '深圳都市',
-    'EYETV 旅游'， '亞洲旅遊'， '美食星球',
+    'EYETV 旅游', '亞洲旅遊', '美食星球',
     '亚洲武侠', 'Now爆谷台', 'Now星影台',
     '亚洲武侠', 'Now爆谷台', '龍祥',
-    'Sun TV HD'， 'SUN MUSIC'， 'FASHION TV',
+    'Sun TV HD', 'SUN MUSIC', 'FASHION TV',
     'Playboy Plus', '欧美艺术', '美国家庭'
 ]
+
 
 # 要排除的关键词（模糊匹配）
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
