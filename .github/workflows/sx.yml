@@ -1,0 +1,51 @@
+name: Run sx.py daily
+
+on:
+  schedule:
+    # 每天在上海时间的 8:00 和 20:00 运行，即 UTC 时间的 0:00 和 12:00
+    - cron: '0 0,12 * * *'  # 0 0,12 表示 UTC 时间的 0:00 和 12:00
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  run_sx_script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Remove old 888.txt if exists
+        run: |
+          if [ -f 888.txt ]; then
+            rm 888.txt
+            echo "Old 888.txt removed."
+          else
+            echo "No old 888.txt file to remove."
+          fi
+
+      - name: Run sx.py script
+        run: |
+          echo "Running sx.py script..."
+          python sx.py
+
+      - name: Check if 888.txt was generated
+        run: |
+          if [ -f 888.txt ]; then
+            echo "888.txt generated successfully."
+          else
+            echo "888.txt was not generated."
+            exit 1
+          fi
+
+      - name: Commit and push changes if 888.txt exists
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add 888.txt
+          git commit -m 'Generate 888.txt from sx.py' || echo "No changes to commit"
+          git push
