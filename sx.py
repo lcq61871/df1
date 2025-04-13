@@ -23,16 +23,28 @@ exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 # 保存所有 IPTV 数据行
 all_lines = []
 
-# 读取本地文件，增加调试信息
+
+# 本地文件名
+local_file = 'iptv_list.txt'
+
+# 存储读取的内容
+all_lines = []
+
+# 读取本地文件
 try:
+    # 检查文件是否存在
     if os.path.exists(local_file):
         with open(local_file, 'r', encoding='utf-8') as f:
             all_lines.extend(f.readlines())
         print(f"成功读取本地文件 {local_file}")
     else:
-        print(f"本地文件 {local_file} 不存在")
+        print(f"本地文件 {local_file} 不存在，请检查文件路径。")
 except Exception as e:
     print(f"读取本地文件时发生错误: {e}")
+
+# 查看读取到的内容数量
+print(f"共读取到 {len(all_lines)} 行数据")
+
 
 # 远程源 1
 url1 = 'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt'
