@@ -49,8 +49,13 @@ for url in remote_urls:
     try:
         print(f"正在获取远程数据: {url}")
         response = requests.get(url, timeout=10)
+        
+        # 打印状态码和前几行响应内容
+        print(f"状态码: {response.status_code}")
         if response.status_code == 200:
-            print(f"成功获取数据，状态码: {response.status_code}")
+            print("成功获取数据。响应内容预览：")
+            print(response.text[:200])  # 打印前200个字符查看响应内容
+            
             lines = response.text.splitlines()
 
             # 判断文件格式（.m3u 文件或 .txt 文件）
@@ -65,12 +70,15 @@ for url in remote_urls:
                             all_lines.append(f'{channel} {stream_url}')
             elif url.endswith('.txt'):
                 print(f"正在解析 txt 文件: {url}")
-                # 假设 txt 文件每行都是“频道名称 URL”的格式
-                for line in lines:
-                    parts = line.split(' ')
-                    if len(parts) == 2:
-                        channel, stream_url = parts
-                        all_lines.append(f'{channel} {stream_url}')
+                # 跳过前两行，解析每一行的频道名称和 URL
+                for line in lines[2:]:  # 跳过前两行
+                    if ',' in line:
+                        parts = line.split(',')
+                        if len(parts) == 2:  # 确保每行是频道名和 URL
+                            channel, stream_url = parts
+                            channel = channel.strip()
+                            stream_url = stream_url.strip()
+                            all_lines.append(f'{channel} {stream_url}')
             else:
                 print(f"不支持的文件格式: {url}")
         else:
