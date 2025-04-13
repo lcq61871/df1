@@ -27,8 +27,9 @@ target_streams = []
 
 # 遍历文件中的每一行，检查频道是否在目标频道列表中
 for line in lines:
-    # 跳过包含 #genre# 或更新时间的行
-    if '#' in line or ',' not in line:
+    # 跳过包含 #genre# 或其他无效信息的行
+    if '#genre#' in line or ',' not in line:
+        print(f"Skipping invalid line: {line.strip()}")  # 输出跳过的行
         continue
 
     print(f"Processing line: {line.strip()}")  # 打印每行内容，查看格式
@@ -49,8 +50,10 @@ for line in lines:
 output_file = 'filtered_streams.txt'
 try:
     if target_streams:
+        # 在文件开头加上 "abc频道,#genre#"
         with open(output_file, 'w', encoding='utf-8') as out_file:
-            out_file.write("\n".join(target_streams))
+            out_file.write("abcd频道,#genre#\n")  # 添加头部信息
+            out_file.write("\n".join(target_streams))  # 写入目标频道数据
         print(f"筛选完成！已保存到 '{output_file}'")
     else:
         print("没有找到匹配的直播源。")
