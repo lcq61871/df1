@@ -59,25 +59,6 @@ print(f"收集到 {len(all_lines)} 行数据")
 if not all_lines:
     print("没有成功获取数据，请检查文件路径或远程 URL 是否有效。")
 
-# 远程源 2
-url2 = 'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u'
-print("正在从远程 URL 2 获取数据...")
-try:
-    response2 = requests.get(url2, timeout=10)
-    if response2.status_code == 200:
-        m3u_lines = response2.text.splitlines()
-        for i in range(0, len(m3u_lines) - 1):
-            if m3u_lines[i].startswith('#EXTINF') and m3u_lines[i + 1].startswith('http'):
-                match = re.search(r',(.+)', m3u_lines[i])
-                if match:
-                    channel = match.group(1).strip()
-                    url = m3u_lines[i + 1].strip()
-                    all_lines.append(f'{channel} {url}')
-        print(f"从 {url2} 获取数据成功, 状态码: {response2.status_code}")
-    else:
-        print(f"从 {url2} 获取数据失败, 状态码: {response2.status_code}")
-except Exception as e:
-    print(f"获取 {url2} 失败: {e}")
 
 # 查看最终收集到的数据
 print(f"共收集到 {len(all_lines)} 行数据")
