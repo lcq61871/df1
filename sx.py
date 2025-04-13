@@ -27,12 +27,8 @@ all_lines = []
 # 本地文件名
 local_file = 'iptv_list.txt'
 
-# 存储读取的内容
-all_lines = []
-
 # 读取本地文件
 try:
-    # 检查文件是否存在
     if os.path.exists(local_file):
         with open(local_file, 'r', encoding='utf-8') as f:
             all_lines.extend(f.readlines())
@@ -41,9 +37,6 @@ try:
         print(f"本地文件 {local_file} 不存在，请检查文件路径。")
 except Exception as e:
     print(f"读取本地文件时发生错误: {e}")
-
-# 查看读取到的内容数量
-print(f"共读取到 {len(all_lines)} 行数据")
 
 
 # 远程源 1
@@ -66,21 +59,28 @@ print(f"收集到 {len(all_lines)} 行数据")
 if not all_lines:
     print("没有成功获取数据，请检查文件路径或远程 URL 是否有效。")
 
-# 远程源 2（M3U 格式）
+# 远程源 2
 url2 = 'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u'
+print("正在从远程 URL 2 获取数据...")
 try:
     response2 = requests.get(url2, timeout=10)
     if response2.status_code == 200:
         m3u_lines = response2.text.splitlines()
         for i in range(0, len(m3u_lines) - 1):
-            if m3u_lines[i].startswith('#EXTINF') and m3u_lines[i+1].startswith('http'):
+            if m3u_lines[i].startswith('#EXTINF') and m3u_lines[i + 1].startswith('http'):
                 match = re.search(r',(.+)', m3u_lines[i])
                 if match:
                     channel = match.group(1).strip()
                     url = m3u_lines[i + 1].strip()
                     all_lines.append(f'{channel} {url}')
+        print(f"从 {url2} 获取数据成功, 状态码: {response2.status_code}")
+    else:
+        print(f"从 {url2} 获取数据失败, 状态码: {response2.status_code}")
 except Exception as e:
     print(f"获取 {url2} 失败: {e}")
+
+# 查看最终收集到的数据
+print(f"共收集到 {len(all_lines)} 行数据")
 
 # 进行精确匹配过滤
 target_set = set(name.lower() for name in target_channels)
