@@ -1,3 +1,18 @@
+# 在 sx.py 开头加上调试信息
+print("Starting to process IPTV list...")
+
+# 检查文件是否正确打开
+try:
+    with open('iptv_list.txt', 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+        print(f"Read {len(lines)} lines from iptv_list.txt")
+except Exception as e:
+    print(f"Error reading iptv_list.txt: {e}")
+    exit(1)
+
+# 继续执行脚本...
+
+
 # 定义需要抓取的频道名称
 target_channels = ['cctv1', 'cctv2', 'cctv3', '湖南卫视', '甘肃卫视']
 
