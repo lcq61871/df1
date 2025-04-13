@@ -16,7 +16,6 @@ target_channels = [
     'Playboy Plus', '欧美艺术', '美国家庭'
 ]
 
-
 # 要排除的关键词（模糊匹配）
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 
@@ -79,11 +78,18 @@ for line in all_lines:
     channel_name = match.group(1).strip()
     stream_url = match.group(2).strip()
 
-    if (
-        channel_name.lower() in target_set and
-        not any(keyword in channel_name for keyword in exclude_keywords)
-    ):
-        grouped_streams[channel_name].append(stream_url)
+    # 调试输出
+    print(f"处理频道: {channel_name}, {stream_url}")
+
+    # 检查频道名称是否符合要求
+    if channel_name.lower() in target_set:
+        # 排除包含特定关键词的频道
+        if any(keyword in channel_name for keyword in exclude_keywords):
+            print(f"排除频道: {channel_name}, 包含排除关键词")
+        else:
+            grouped_streams[channel_name].append(stream_url)
+    else:
+        print(f"不符合条件的频道: {channel_name}")
 
 # 写入输出文件
 if grouped_streams:
