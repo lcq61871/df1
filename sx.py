@@ -8,7 +8,7 @@ target_channels = [
     'CCTV央视文化精品[1920x1080]',
     'CCTV高尔夫·网球[1920x1080]',
     'CCTV风云足球[1920x1080]',
-    '湖南都市', '湖南卫视', '甘肃卫视'
+    '湖南都市', '湖南卫视', 'TVB星河台'
 ]
 
 # 要排除的关键词（模糊匹配）
@@ -34,7 +34,7 @@ except Exception as e:
     print(f"获取 {url1} 失败: {e}")
 
 # 远程源 2（M3U 格式）
-url2 = 'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u'
+url2 = 'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u'
 try:
     response2 = requests.get(url2, timeout=10)
     if response2.status_code == 200:
