@@ -1,11 +1,4 @@
 abc频道,#genre#
 CCTV1, http://home.kuaidi521.com:35455/gaoma/cctv1.m3u8
 CCTV2, http://129.146.6.71:35455/gaoma/cctv2.m3u8
-CCTV10, http://dsj.motem.top:8880/gaoma/cctv10.m3u8
-CCTV11, http://huashetou.fun:35455/gaoma/cctv11.m3u8
-CCTV12, http://home.kuaidi521.com:35455/gaoma/cctv12.m3u8
 CCTV13, http://3501776.xyz:35455/gaoma/cctv13.m3u8
-CCTV14, http://36.105.100.208:35455/gaoma/cctv14.m3u8
-CCTV15, http://124.243.178.131:35455/gaoma/cctv15.m3u8
-CCTV16, http://23.106.158.19:35455/gaoma/cctv16.m3u8
-CCTV17, http://yc.myds.me:35455/gaoma/cctv17.m3u8
