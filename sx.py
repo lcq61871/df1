@@ -33,21 +33,6 @@ try:
 except Exception as e:
     print(f"获取 {url1} 失败: {e}")
 
-# 远程源 2（M3U 格式）
-url2 = 'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u'
-try:
-    response2 = requests.get(url2, timeout=10)
-    if response2.status_code == 200:
-        m3u_lines = response2.text.splitlines()
-        for i in range(0, len(m3u_lines) - 1):
-            if m3u_lines[i].startswith('#EXTINF') and m3u_lines[i+1].startswith('http'):
-                match = re.search(r',(.+)', m3u_lines[i])
-                if match:
-                    channel = match.group(1).strip()
-                    url = m3u_lines[i + 1].strip()
-                    all_lines.append(f'{channel} {url}')
-except Exception as e:
-    print(f"获取 {url2} 失败: {e}")
 
 # 进行精确匹配过滤
 target_set = set(name.lower() for name in target_channels)
@@ -63,7 +48,7 @@ for line in all_lines:
         continue
 
     channel_name = match.group(1).strip()
-    stream_url = match.group(2).strip()
+
 
     if (
         channel_name.lower() in target_set and
