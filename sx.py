@@ -1,11 +1,11 @@
-import os
 import requests
 import re
-
+import os
 # 删除旧的 filtered_streams.txt（如果存在）
 if os.path.exists('filtered_streams.txt'):
     os.remove('filtered_streams.txt')
     print("已删除旧的 filtered_streams.txt 文件")
+
 
 # 需要保留的频道关键词（精确匹配）
 target_channels = [
