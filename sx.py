@@ -27,11 +27,11 @@ if os.path.exists(output_file):
 
 # 读取本地文件
 try:
-    with open('dianxin.txt', 'r', encoding='utf-8') as f:
+    with open('iptv_list.txt', 'r', encoding='utf-8') as f:
         all_lines.extend(f.readlines())
-    print("成功读取本地 dianxin.txt 文件")
+    print("成功读取本地 iptv_list.txt 文件")
 except FileNotFoundError:
-    print("本地 dianxin.txt 文件未找到，将仅使用远程源")
+    print("本地 iptv_list.txt 文件未找到，将仅使用远程源")
 
 # 远程源列表
 urls = [
@@ -45,14 +45,14 @@ for url in urls:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
             all_lines.extend(response.text.splitlines())
-            print(f"成功获取远程源: {url}")
+            print(f"成功获取远程源: {url}，数据行数：{len(response.text.splitlines())}")
         else:
             print(f"远程源访问失败: {url} - 状态码: {response.status_code}")
     except Exception as e:
         print(f"获取远程源失败 {url}: {e}")
 
 # 显示获取到的所有数据行数
-print(f"获取到 {len(all_lines)} 行数据")
+print(f"总共获取到 {len(all_lines)} 行数据")
 
 # 精确匹配目标频道
 target_set = set(name.lower() for name in target_channels)
