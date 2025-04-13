@@ -51,6 +51,9 @@ for url in urls:
     except Exception as e:
         print(f"获取远程源失败 {url}: {e}")
 
+# 显示获取到的所有数据行数
+print(f"获取到 {len(all_lines)} 行数据")
+
 # 精确匹配目标频道
 target_set = set(name.lower() for name in target_channels)
 target_streams = defaultdict(list)
@@ -74,6 +77,9 @@ for line in all_lines:
         not any(bad in channel_name for bad in exclude_keywords)
     ):
         target_streams[channel_name].append(stream_url)
+
+# 显示匹配到的频道数量
+print(f"匹配到 {len(target_streams)} 个频道")
 
 # 写入输出文件
 if target_streams:
