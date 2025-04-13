@@ -1,0 +1,15 @@
+abc频道,#genre#
+TVB星河台, http://v2h.jdshipin.com/xinghe/xinghe.stream/chunklist.m3u8
+TVB星河台, https://edge6a.v2h-cdn.com/xinghe/xinghe.stream/chunklist.m3u8
+CCTV1, https://hyf000.eu.org/PBS/cctv1.m3u8
+CCTV2, https://hyf000.eu.org/PBS/cctv2.m3u8
+CCTV13, https://hyf000.eu.org/PBS/cctv13.m3u8
+CCTV1, https://hyf.serv00.net/鹏博士.php?id=cctv1
+CCTV2, https://hyf.serv00.net/鹏博士.php?id=cctv2
+CCTV13, https://hyf.serv00.net/鹏博士.php?id=cctv13
+湖南卫视, https://hyf000.eu.org/PBS/hunws.m3u8
+湖南卫视, https://hyf.serv00.net/鹏博士.php?id=hunws
+湖南卫视, http://211.72.65.236:8573/.m3u8
+CCTV1, http://home.kuaidi521.com:35455/gaoma/cctv1.m3u8
+CCTV2, http://129.146.6.71:35455/gaoma/cctv2.m3u8
+CCTV13, http://3501776.xyz:35455/gaoma/cctv13.m3u8
