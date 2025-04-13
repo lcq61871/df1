@@ -1,22 +1,38 @@
 import os
+import requests
 
 # 打印当前工作目录，确保路径正确
 print(f"Current working directory: {os.getcwd()}")
 
-# 检查 iptv_list.txt 文件是否存在
-if not os.path.isfile('iptv_list.txt'):
-    print("iptv_list.txt 文件不存在！")
-    exit(1)
+# 从远程 URL 下载 iptv_list.txt 内容
+iptv_url = "https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt"
+print(f"Downloading iptv_list.txt from {iptv_url}...")
 
-# 打开 iptv_list.txt 文件并读取内容
-print("Reading iptv_list.txt...")
+# 下载远程文件内容
 try:
-    with open('iptv_list.txt', 'r', encoding='utf-8') as file:
-        lines = file.readlines()
-    print(f"Read {len(lines)} lines from iptv_list.txt")
-except Exception as e:
-    print(f"Error reading iptv_list.txt: {e}")
-    exit(1)
+    response = requests.get(iptv_url)
+    response.raise_for_status()  # 如果请求失败，将抛出异常
+    remote_lines = response.text.splitlines()  # 获取文本内容并按行分割
+    print(f"Successfully downloaded {len(remote_lines)} lines from the URL")
+except requests.exceptions.RequestException as e:
+    print(f"Error downloading iptv_list.txt from URL: {e}")
+    remote_lines = []  # 如果下载失败，使用空列表
+
+# 尝试读取本地的 iptv_list.txt 文件
+local_lines = []
+if os.path.isfile('iptv_list.txt'):
+    print("Reading local iptv_list.txt...")
+    try:
+        with open('iptv_list.txt', 'r', encoding='utf-8') as file:
+            local_lines = file.readlines()
+        print(f"Read {len(local_lines)} lines from the local file")
+    except Exception as e:
+        print(f"Error reading local iptv_list.txt: {e}")
+else:
+    print("Local iptv_list.txt file not found!")
+
+# 合并本地和远程的内容
+lines = local_lines + remote_lines
 
 # 定义需要抓取的频道名称
 target_channels = ['CCTV1', 'CCTV2', 'CCTV3', '湖南卫视', '甘肃卫视']
@@ -52,7 +68,7 @@ try:
     if target_streams:
         # 在文件开头加上 "abc频道,#genre#"
         with open(output_file, 'w', encoding='utf-8') as out_file:
-            out_file.write("abcd频道,#genre#\n")  # 添加头部信息
+            out_file.write("abc频道,#genre#\n")  # 添加头部信息
             out_file.write("\n".join(target_streams))  # 写入目标频道数据
         print(f"筛选完成！已保存到 '{output_file}'")
     else:
