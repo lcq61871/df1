@@ -2,8 +2,14 @@ import requests
 import re
 
 # 需要保留的频道关键词
-target_channels = ['CCTV1', 'CCTV2', 'CCTV13', 'CCTV世界地理[1920x1080]', 'CCTV央视文化精品[1920x1080]', 'CCTV高尔夫·网球[1920x1080]', 'CCTV风云足球[1920x1080]', '湖南都市''湖南卫视', '甘肃卫视']
-
+target_channels = [
+    'CCTV1', 'CCTV2', 'CCTV13',
+    'CCTV世界地理[1920x1080]',
+    'CCTV央视文化精品[1920x1080]',
+    'CCTV高尔夫·网球[1920x1080]',
+    'CCTV风云足球[1920x1080]',
+    '湖南都市', '湖南卫视', '甘肃卫视'
+]
 # 要排除的关键词
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 
