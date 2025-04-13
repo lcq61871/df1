@@ -1,6 +1,1 @@
-https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt
-http://8.138.7.223/live.txt
 https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt
-http://4gtv.mumi.rip:9877/index.m3u8
-https://live.iptv365.org/live.txt
-https://mytvb.netlify.app/mytvsuperA.m3u
