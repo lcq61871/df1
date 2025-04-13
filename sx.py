@@ -40,7 +40,7 @@ except FileNotFoundError:
 remote_urls = [
     'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u',
     'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u',
-    'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/GDIPTV.m3u',
+    'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/alenin-zhang/IPTV/refs/heads/main/LITV.txt'
 ]
 
