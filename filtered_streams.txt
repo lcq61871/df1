@@ -2,4 +2,3 @@ abc频道,#genre#
 CCTV1, http://home.kuaidi521.com:35455/gaoma/cctv1.m3u8
 CCTV2, http://129.146.6.71:35455/gaoma/cctv2.m3u8
 CCTV13, http://3501776.xyz:35455/gaoma/cctv13.m3u8
-CCTV世界地理, http://111.61.236.247:9081/hls/62/index.m3u8
