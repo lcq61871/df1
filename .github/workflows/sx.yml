@@ -19,6 +19,10 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install dependencies
+        run: |
+          pip install requests  # 安装 requests 库
+
       - name: Remove old filtered_streams.txt if exists
         run: |
           if [ -f filtered_streams.txt ]; then
