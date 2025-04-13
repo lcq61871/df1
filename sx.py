@@ -4,14 +4,17 @@ import os
 from collections import defaultdict
 
 # 需要保留的频道关键词（精确匹配）
-try:
-    with open('moban.txt', 'r', encoding='utf-8') as f:
-        target_channels = [line.strip() for line in f.readlines() if line.strip()]
-    print("成功读取 moban.txt 文件")
-    print("加载的频道关键词:", target_channels)
-except FileNotFoundError:
-    print("moban.txt 文件未找到")
-    target_channels = []
+target_channels = [
+    'CCTV1', 'CCTV2', 'CCTV13',
+    'CCTV世界地理[1920x1080]',
+    'CCTV央视文化精品[1920x1080]',
+    '湖南卫视', '湖南都市', '深圳都市',
+    'EYETV 旅游'， '亞洲旅遊'， '美食星球',
+    '亚洲武侠', 'Now爆谷台', 'Now星影台',
+    '亚洲武侠', 'Now爆谷台', '龍祥',
+    'Sun TV HD'， 'SUN MUSIC'， 'FASHION TV',
+    'Playboy Plus', '欧美艺术', '美国家庭'
+]
 
 # 要排除的关键词（模糊匹配）
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
@@ -34,7 +37,7 @@ except FileNotFoundError:
 
 # 远程源列表
 remote_urls = [
-    'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
+    'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u',
     'https://raw.githubusercontent.com/peterHchina/iptv/refs/heads/main/CCTV-V4.m3u',
     'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/GDIPTV.m3u',
     'https://raw.githubusercontent.com/alenin-zhang/IPTV/refs/heads/main/LITV.txt'
@@ -59,9 +62,6 @@ for url in remote_urls:
     except Exception as e:
         print(f"获取 {url} 失败: {e}")
 
-# 调试：检查所有数据
-print(f"总共读取到 {len(all_lines)} 条 IPTV 数据")
-
 # 精确匹配并归类
 target_set = set(name.lower() for name in target_channels)
 grouped_streams = defaultdict(list)
@@ -78,19 +78,11 @@ for line in all_lines:
     channel_name = match.group(1).strip()
     stream_url = match.group(2).strip()
 
-    # 调试：输出每个处理的频道
-    print(f"正在处理频道: {channel_name}, URL: {stream_url}")
-
-    # 精确匹配需要保留的频道，并排除不需要的关键词
     if (
         channel_name.lower() in target_set and
         not any(keyword in channel_name for keyword in exclude_keywords)
     ):
         grouped_streams[channel_name].append(stream_url)
-
-# 检查筛选结果
-if not grouped_streams:
-    print("没有符合条件的频道被筛选出来")
 
 # 写入输出文件
 if grouped_streams:
