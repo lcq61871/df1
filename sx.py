@@ -59,6 +59,9 @@ for url in remote_urls:
     except Exception as e:
         print(f"获取 {url} 失败: {e}")
 
+# 调试：检查所有数据
+print(f"总共读取到 {len(all_lines)} 条 IPTV 数据")
+
 # 精确匹配并归类
 target_set = set(name.lower() for name in target_channels)
 grouped_streams = defaultdict(list)
@@ -75,7 +78,8 @@ for line in all_lines:
     channel_name = match.group(1).strip()
     stream_url = match.group(2).strip()
 
-    print(f"正在处理频道: {channel_name}, URL: {stream_url}")  # 打印调试信息
+    # 调试：输出每个处理的频道
+    print(f"正在处理频道: {channel_name}, URL: {stream_url}")
 
     # 精确匹配需要保留的频道，并排除不需要的关键词
     if (
@@ -83,6 +87,10 @@ for line in all_lines:
         not any(keyword in channel_name for keyword in exclude_keywords)
     ):
         grouped_streams[channel_name].append(stream_url)
+
+# 检查筛选结果
+if not grouped_streams:
+    print("没有符合条件的频道被筛选出来")
 
 # 写入输出文件
 if grouped_streams:
