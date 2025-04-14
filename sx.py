@@ -40,6 +40,22 @@ except FileNotFoundError:
 remote_urls = [
     'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u',
+    'https://raw.githubusercontent.com/kkllllkkkk/kkllllkkkk.github.io/refs/heads/main/1.txt',
+   'https://raw.githubusercontent.com/chiang1102/a/refs/heads/main/test1.txt',
+   'http://4gtv.mumi.rip:9877/index.m3u8',
+   'https://raw.githubusercontent.com/alenin-zhang/IPTV/refs/heads/main/av',
+   'https://mytvb.netlify.app/mytvsuperA.m3u',
+   'https://live.iptv365.org/live.txt',
+   'https://qu.ax/vUBde.txt',
+   'http://tv543.cc/list.php',
+   'https://freetv.fun/test_channels_taiwan.m3u',
+   'https://tv.iill.top/m3u/Gather',
+   'https://gcore.jsdelivr.net/gh/Guovin/iptv-api@gd/output/result.m3u',
+   'http://ttkx.cc:55/lib/kx2024.txt',
+   'https://raw.githubusercontent.com/quninainaixi/quninainaixi/refs/heads/main/DSJ2024417.txt',
+   'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/173.txt',
+   'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/167.txt',
+   'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/108.txt',
     'https://raw.githubusercontent.com/lcq61871/df1/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
