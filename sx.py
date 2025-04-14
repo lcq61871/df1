@@ -103,7 +103,7 @@ for line in all_lines:
         grouped_streams[channel_name].add(stream_url)
 
 # ===== 并发验证源是否有效 =====
-def is_valid_stream(url, timeout=5):
+def is_valid_stream(url, timeout=10):
     try:
         r = requests.head(url, timeout=timeout, allow_redirects=True)
         return r.status_code == 200
