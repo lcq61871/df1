@@ -102,26 +102,32 @@ for line in all_lines:
     ):
         grouped_streams[channel_name].add(stream_url)
 
-# ===== 并发验证源是否有效 =====
-def is_valid_stream(url, timeout=10):
-    try:
-        r = requests.head(url, timeout=timeout, allow_redirects=True)
-        return r.status_code == 200
-    except:
-        return False
+import time
 
-def filter_valid_urls(urls):
-    valid_urls = set()
+# ===== 并发测速并筛选最快的节目源 =====
+def test_stream_speed(url, timeout=10):
+    try:
+        start = time.time()
+        response = requests.get(url, timeout=timeout, stream=True)
+        if response.status_code == 200:
+            end = time.time()
+            return url, end - start
+    except:
+        pass
+    return url, float('inf')
+
+def get_fastest_urls(urls, top_n=5):
+    results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_url = {executor.submit(is_valid_stream, url, timeout): url for url in urls}
+        future_to_url = {executor.submit(test_stream_speed, url, timeout): url for url in urls}
         for future in concurrent.futures.as_completed(future_to_url):
-            url = future_to_url[future]
-            try:
-                if future.result():
-                    valid_urls.add(url)
-            except:
-                continue
-    return valid_urls
+            url, duration = future.result()
+            if duration != float('inf'):
+                results.append((url, duration))
+    # 排序保留前 N 个速度最快的链接
+    results.sort(key=lambda x: x[1])
+    return [url for url, _ in results[:top_n]]
+
 
 # ===== 过滤掉无效节目源地址 =====
 final_streams = defaultdict(list)
