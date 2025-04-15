@@ -7,7 +7,7 @@ import time
 
 # ===== 参数配置 =====
 target_channels = [
-    'CCTV1', 'CCTV2 财经[1920x1080]', 'CCTV13',
+    'CCTV1', 'CCTV2', 'CCTV13',
     'CCTV世界地理[1920x1080]', 'CCTV央视文化精品[1920x1080]',
     '湖南卫视[1920x1080]', '湖南都市', '深圳都市',
     'EYETV 旅游', '亞洲旅遊', '美食星球',
@@ -17,7 +17,7 @@ target_channels = [
 ]
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
-timeout = 5
+timeout = 10
 max_workers = 20
 
 # ===== 删除旧文件 =====
@@ -120,8 +120,13 @@ def get_fastest_urls(channel, urls, top_n=5):
                 continue
     results.sort(key=lambda x: x[1])
     with open('speed_log.txt', 'a', encoding='utf-8') as log:
-        for url, delay in results[:top_n]:
-            log.write(f"{channel}, {delay:.2f}s, {url}\n")
+        if results:
+            log.write(f"【{channel}】测速成功 {len(results[:top_n])} 条\n")
+            for url, delay in results[:top_n]:
+                log.write(f"  {delay:.2f}s  {url}\n")
+        else:
+            log.write(f"【{channel}】⚠️ 无可用源\n")
+    print(f"✅ {channel} | 写入 {len(results[:top_n])} 条测速日志")
     return [url for url, _ in results[:top_n]]
 
 # ===== 生成最终节目表 =====
