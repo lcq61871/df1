@@ -16,7 +16,7 @@ target_channels = [
     'Playboy Plus', '欧美艺术', '美国家庭'
 ]
 
-exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
+exclude_keywords = ['chinamobile', 'tvgslb', 'kkk.jjjj.jiduo.me', '理财']
 timeout = 10
 max_workers = 20
 
@@ -45,7 +45,6 @@ remote_urls = [
     'https://freetv.fun/test_channels_taiwan.m3u',
     'https://tv.iill.top/m3u/Gather',
     'https://gcore.jsdelivr.net/gh/Guovin/iptv-api@gd/output/result.m3u',
-    'http://ttkx.cc:55/lib/kx2024.txt',
     'https://raw.githubusercontent.com/quninainaixi/quninainaixi/refs/heads/main/DSJ2024417.txt',
     'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/173.txt',
     'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/167.txt',
