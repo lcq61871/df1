@@ -20,11 +20,16 @@ exclude_keywords = ['chinamobile', 'tvgslb', 'kkk.jjjj.jiduo.me', '理财']
 timeout = 10
 max_workers = 20
 
+# ===== 确认当前目录并准备文件路径 =====
+cwd = os.getcwd()
+log_path = os.path.join(cwd, 'speed_log.txt')
+out_path = os.path.join(cwd, 'filtered_streams.txt')
+
 # ===== 删除旧文件 =====
-if os.path.exists('filtered_streams.txt'):
-    os.remove('filtered_streams.txt')
-if os.path.exists('speed_log.txt'):
-    os.remove('speed_log.txt')
+if os.path.exists(out_path):
+    os.remove(out_path)
+if os.path.exists(log_path):
+    os.remove(log_path)
 print("✅ 已清理旧的输出文件")
 
 # ===== 收集源数据 =====
@@ -118,7 +123,7 @@ def get_fastest_urls(channel, urls, top_n=5):
             except:
                 continue
     results.sort(key=lambda x: x[1])
-    with open('speed_log.txt', 'a', encoding='utf-8') as log:
+    with open(log_path, 'a', encoding='utf-8') as log:
         if results:
             log.write(f"【{channel}】测速成功 {len(results[:top_n])} 条\n")
             for url, delay in results[:top_n]:
@@ -137,10 +142,12 @@ for channel, urls in grouped_streams.items():
     final_streams[channel].extend(fastest)
 
 # ===== 写入 filtered_streams.txt =====
-with open('filtered_streams.txt', 'w', encoding='utf-8') as f:
+with open(out_path, 'w', encoding='utf-8') as f:
     f.write("abc频道,#genre#\n")
     for channel, urls in sorted(final_streams.items()):
         for url in urls:
             f.write(f"{channel}, {url}\n")
 
-print("✅ 完成！filtered_streams.txt 和 speed_log.txt 已生成")
+print("✅ 完成！输出文件：")
+print(f"📄 {out_path}")
+print(f"📄 {log_path}")
