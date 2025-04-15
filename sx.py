@@ -17,7 +17,7 @@ target_channels = [
 ]
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
-exclude_domains = ['kkk.jjjj.jiduo.me', 'example.com']  # 可以轻松在此添加更多域名
+exclude_domains = ['kkk.jjjj.jiduo.me', 'www.freetv.top']  # 可以轻松在此添加更多域名
 timeout = 10
 max_workers = 20
 
