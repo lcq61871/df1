@@ -1,50 +1,50 @@
 abc频道,#genre#
-CCTV1, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=1531&tk=f6cc1e0a0e1a
-CCTV1, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=9659&tk=b53028476470
-CCTV1, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=8469&tk=a0c4f6cfaba3
-CCTV1, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=4290&tk=f6cc1e0a0e1a
 CCTV1, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=3300&tk=e503191f8e20
-CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=2006&tk=b53028476470
-CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=5503&tk=a0c4f6cfaba3
-CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=3511&tk=b53028476470
-CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=9432&tk=f6cc1e0a0e1a
-CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=3769&tk=a0c4f6cfaba3
-CCTV2, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=0780&tk=f6cc1e0a0e1a
-CCTV2, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=1319&tk=f6cc1e0a0e1a
-CCTV2, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=8182&tk=e640d0a1bf70
-CCTV2, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=1094&tk=e503191f8e20
+CCTV1, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=8619&tk=e503191f8e20
+CCTV1, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=8786&tk=f6cc1e0a0e1a
+CCTV1, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=7928&tk=e503191f8e20
+CCTV1, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=8318&tk=2aca1ad9a849
+CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=0966&tk=e640d0a1bf70
+CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=1203&tk=e503191f8e20
+CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=4087&tk=f6cc1e0a0e1a
+CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=1248&tk=e640d0a1bf70
+CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=2954&tk=a0c4f6cfaba3
 CCTV2, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=8147&tk=a0c4f6cfaba3
-CCTV世界地理[1920x1080], http://116.30.249.99:8088/udp/239.253.43.7:5146
+CCTV2, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=5045&tk=aa0698566417
+CCTV2, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=6402&tk=a0c4f6cfaba3
+CCTV2, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=7971&tk=b53028476470
+CCTV2, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=2159&tk=f6cc1e0a0e1a
 CCTV世界地理[1920x1080], http://116.30.249.99:8088/udp/239.253.43.24:5146
-CCTV央视文化精品[1920x1080], http://113.104.184.159:7088/udp/239.253.43.27:5146
+CCTV世界地理[1920x1080], http://113.104.184.159:7088/udp/239.253.43.24:5146
+CCTV世界地理[1920x1080], http://113.104.184.159:7088/udp/239.253.43.7:5146
 CCTV央视文化精品[1920x1080], http://113.104.184.159:7088/udp/239.253.43.13:5146
-CCTV央视文化精品[1920x1080], http://116.30.249.99:8088/udp/239.253.43.27:5146
+CCTV央视文化精品[1920x1080], http://113.104.184.159:7088/udp/239.253.43.27:5146
 CCTV央视文化精品[1920x1080], http://116.30.249.99:8088/udp/239.253.43.13:5146
+CCTV央视文化精品[1920x1080], http://116.30.249.99:8088/udp/239.253.43.27:5146
 EYETV 旅游, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
 FASHION TV, https://fash2043.cloudycdn.services/slive/ftv_ftv_4k_hevc_73d_42080_default_466_hls.smil/playlist.m3u8
 PLAYBOY Plus, http://rhsbjv7k.tvclub.xyz/iptv/3VDSMMR8L3C7UP/6242/index.m3u8
-Playboy Plus, http://rhsbjv7k.tvclub.xyz/iptv/3VDSMMR8L3C7UP/6242/index.m3u8
 Playboy Plus, https://hyf000.eu.org/live/80947108.php?id=102
+Playboy Plus, http://rhsbjv7k.tvclub.xyz/iptv/3VDSMMR8L3C7UP/6242/index.m3u8
 SUN MUSIC, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
 Sun TV HD, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
-亚洲武侠, http://php.jdshipin.com/TVOD/iptv.php?id=yzwx
 亞洲旅遊, http://37.27.111.214:8080/live/10/hls.m3u8
-亞洲旅遊, http://4gtv.mumi.rip:9877/250/4gtv-4gtv076/index.m3u8
 亞洲旅遊, http://4gtv.mumi.rip:9877/250/litv-longturn17/index.m3u8
-深圳都市, http://183.11.239.36:808/hls/140/index.m3u8
+亞洲旅遊, http://4gtv.mumi.rip:9877/250/4gtv-4gtv076/index.m3u8
 深圳都市, http://183.30.199.23:8886/udp/239.77.1.124:5146
 深圳都市, http://183.30.199.23:8886/udp/239.77.1.176:5146
+深圳都市, http://183.11.239.36:808/hls/140/index.m3u8
 深圳都市, http://113.90.244.16:4000/udp/239.77.1.124:5146
 深圳都市, http://113.90.244.16:4000/udp/239.77.1.176:5146
-湖南卫视[1920x1080], http://113.104.184.159:7088/udp/239.77.1.5:5146
 湖南卫视[1920x1080], http://113.104.184.159:7088/udp/239.77.1.129:5146
+湖南卫视[1920x1080], http://116.30.249.99:8088/udp/239.77.1.5:5146
 湖南卫视[1920x1080], http://113.104.184.159:7088/udp/239.77.0.88:5146
 湖南卫视[1920x1080], http://113.104.184.159:7088/udp/239.77.0.127:5146
-湖南卫视[1920x1080], http://116.30.249.99:8088/udp/239.77.0.88:5146
+湖南卫视[1920x1080], http://116.30.249.99:8088/udp/239.77.0.127:5146
 湖南都市, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=7510&tk=23a9aca1f79f
-湖南都市, http://110.53.218.182:9902/tsfile/live/0127_1.m3u8
 湖南都市, http://116.128.242.83:9901/tsfile/live/0139_1.m3u8?key=txiptv&playlive=1&authid=0
-湖南都市, http://phonetx.qing.mgtv.com/nn_live/nn_x64/0.0&/HNDSMPP360.m3u8
 湖南都市, http://116.128.243.121:85/tsfile/live/1001_1.m3u8?key=txiptv&playlive=1&authid=0
+湖南都市, http://www.peanutbar.cn:8099/tsfile/live/1002_1.m3u8?key=txiptv
+湖南都市, http://phonetx.qing.mgtv.com/nn_live/nn_x64/0.0&/HNDSMPP360.m3u8
 美食星球, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
 美食星球, https://pixman.mytvsuper.com.mp/Smart.php?id=foodplanet_twn
