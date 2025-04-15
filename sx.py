@@ -15,13 +15,6 @@ target_channels = [
     '龍祥', 'Sun TV HD', 'SUN MUSIC', 'FASHION TV',
     'Playboy Plus', '欧美艺术', '美国家庭'
 ]
-channel_groups = {
-    '央视': ['CCTV'],
-    '湖南系': ['湖南卫视', '湖南都市'],
-    '娱乐': ['Now', 'Sun TV', 'FASHION', 'Playboy', '星影', '龙祥'],
-    '旅游美食': ['EYETV', '旅遊', '美食'],
-    '艺术': ['艺术', '家庭']
-}
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 timeout = 5
@@ -47,7 +40,18 @@ remote_urls = [
     'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u',
     'https://raw.githubusercontent.com/kkllllkkkk/kkllllkkkk.github.io/refs/heads/main/1.txt',
-    'https://raw.githubusercontent.com/chiang1102/a/refs/heads/main/test1.txt'
+    'https://raw.githubusercontent.com/chiang1102/a/refs/heads/main/test1.txt',
+    'https://live.iptv365.org/live.txt',
+    'https://freetv.fun/test_channels_taiwan.m3u',
+    'https://tv.iill.top/m3u/Gather',
+    'https://gcore.jsdelivr.net/gh/Guovin/iptv-api@gd/output/result.m3u',
+    'http://ttkx.cc:55/lib/kx2024.txt',
+    'https://raw.githubusercontent.com/quninainaixi/quninainaixi/refs/heads/main/DSJ2024417.txt',
+    'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/173.txt',
+    'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/167.txt',
+    'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/108.txt',
+    'https://raw.githubusercontent.com/lcq61871/df1/refs/heads/main/iptv_list.txt',
+    'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
 
 for url in remote_urls:
@@ -128,19 +132,10 @@ for channel, urls in grouped_streams.items():
     fastest = get_fastest_urls(channel, urls, top_n=5)
     final_streams[channel].extend(fastest)
 
-# ===== 写入 filtered_streams.txt，按分组 =====
-def get_channel_group(name):
-    for group, keywords in channel_groups.items():
-        if any(k in name for k in keywords):
-            return group
-    return '其他'
-
+# ===== 写入 filtered_streams.txt =====
 with open('filtered_streams.txt', 'w', encoding='utf-8') as f:
     f.write("abc频道,#genre#\n")
-    sorted_channels = sorted(final_streams.items(), key=lambda x: get_channel_group(x[0]))
-    for channel, urls in sorted_channels:
-        group = get_channel_group(channel)
-        f.write(f"# {group}\n")
+    for channel, urls in sorted(final_streams.items()):
         for url in urls:
             f.write(f"{channel}, {url}\n")
 
