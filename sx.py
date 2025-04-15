@@ -16,7 +16,8 @@ target_channels = [
     'Playboy Plus', '欧美艺术', '美国家庭'
 ]
 
-exclude_keywords = ['chinamobile', 'tvgslb', 'kkk.jjjj.jiduo.me', '理财']
+exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
+exclude_domains = ['kkk.jjjj.jiduo.me', 'example.com']  # 可以轻松在此添加更多域名
 timeout = 10
 max_workers = 20
 
@@ -58,6 +59,7 @@ remote_urls = [
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
 
+# 拉取远程数据
 for url in remote_urls:
     try:
         print(f"🌐 拉取: {url}")
@@ -70,13 +72,20 @@ for url in remote_urls:
                 if lines[i].startswith('#EXTINF') and lines[i + 1].startswith('http'):
                     match = re.search(r',(.+)', lines[i])
                     if match:
-                        all_lines.append(f"{match.group(1).strip()} {lines[i + 1].strip()}")
+                        stream_url = lines[i + 1].strip()
+                        # 排除特定域名
+                        if any(domain in stream_url for domain in exclude_domains):
+                            continue
+                        all_lines.append(f"{match.group(1).strip()} {stream_url}")
         else:
             for line in lines[2:]:
                 if ',' in line:
                     parts = line.split(',')
                     if len(parts) == 2:
                         channel, stream = parts
+                        # 排除特定域名
+                        if any(domain in stream for domain in exclude_domains):
+                            continue
                         all_lines.append(f"{channel.strip()} {stream.strip()}")
     except Exception as e:
         print(f"❌ 获取失败: {e}")
@@ -107,7 +116,7 @@ def test_stream_speed(url, timeout=10):
         if response.status_code == 200:
             duration = time.time() - start
             return url, duration
-    except:
+    except requests.RequestException:
         pass
     return url, float('inf')
 
@@ -120,9 +129,10 @@ def get_fastest_urls(channel, urls, top_n=5):
                 url, duration = future.result()
                 if duration != float('inf'):
                     results.append((url, duration))
-            except:
+            except Exception as e:
+                print(f"❌ 测速失败: {e}")
                 continue
-    results.sort(key=lambda x: x[1])
+    results.sort(key=lambda x: x[1])  # 根据延迟排序
     with open(log_path, 'a', encoding='utf-8') as log:
         if results:
             log.write(f"【{channel}】测速成功 {len(results[:top_n])} 条\n")
