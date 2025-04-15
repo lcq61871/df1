@@ -1,39 +1,48 @@
 abc频道,#genre#
-# 其他
-亚洲武侠, http://php.jdshipin.com/TVOD/iptv.php?id=yzwx
-# 其他
-# 其他
-# 其他
-# 其他
-# 央视
-CCTV1, http://114.254.146.200:23234/udp/239.3.1.129:8008
-CCTV1, http://114.254.150.183:23234/udp/239.3.1.129:8008
-CCTV1, http://114.254.35.75:8888/udp/239.3.1.129:8008
-# 央视
+CCTV1, https://rthktv33-live.akamaized.net/hls/live/2101641/RTHKTV33/stream05/streamPlaylist.m3u8?
+CCTV1, http://223.105.252.60/PLTV/4/224/3221228581/index.m3u8?servicetype=1
+CCTV1, http://129.146.6.71:35455/gaoma/cctv1.m3u8
+CCTV1, http://111.14.181.15:9901/tsfile/live/0001_1.m3u8?key=txiptv&playlive=1&authid=0
+CCTV1, http://39.170.52.236:808/hls/1/index.m3u8
+CCTV13, http://39.170.52.236:808/hls/13/index.m3u8
+CCTV13, http://39.164.180.36:19901/tsfile/live/0013_1.m3u8?key=txiptv&playlive=0&authid=0
+CCTV13, https://pixman.mytvsuper.com.mp/Smart.php?id=cctv13
+CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=8118&tk=a0c4f6cfaba3
+CCTV13, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=7712&tk=f6cc1e0a0e1a
 CCTV2 财经[1920x1080], http://116.30.249.99:8088/udp/239.253.43.17:5146
 CCTV2 财经[1920x1080], http://116.30.249.99:8088/udp/239.77.0.137:5146
-# 央视
-CCTV13, http://114.254.150.183:23234/udp/239.3.1.124:8128
-CCTV13, http://114.254.146.200:23234/udp/239.3.1.124:8128
-CCTV13, http://114.254.35.75:8888/udp/239.3.1.124:8128
-# 央视
+CCTV2 财经[1920x1080], http://116.30.249.99:8088/udp/239.77.1.158:5146
 CCTV世界地理[1920x1080], http://113.104.184.159:7088/udp/239.253.43.24:5146
-CCTV世界地理[1920x1080], http://116.30.249.99:8088/udp/239.253.43.24:5146
-CCTV世界地理[1920x1080], http://116.30.249.99:8088/udp/239.253.43.7:5146
 CCTV世界地理[1920x1080], http://113.104.184.159:7088/udp/239.253.43.7:5146
-# 央视
+CCTV世界地理[1920x1080], http://116.30.249.99:8088/udp/239.253.43.7:5146
+CCTV世界地理[1920x1080], http://116.30.249.99:8088/udp/239.253.43.24:5146
 CCTV央视文化精品[1920x1080], http://113.104.184.159:7088/udp/239.253.43.27:5146
 CCTV央视文化精品[1920x1080], http://113.104.184.159:7088/udp/239.253.43.13:5146
-CCTV央视文化精品[1920x1080], http://116.30.249.99:8088/udp/239.253.43.13:5146
-# 娱乐
-# 旅游美食
+EYETV 旅游, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
+FASHION TV, https://fash2043.cloudycdn.services/slive/ftv_ftv_4k_hevc_73d_42080_default_466_hls.smil/playlist.m3u8
+PLAYBOY Plus, http://rhsbjv7k.tvclub.xyz/iptv/3VDSMMR8L3C7UP/6242/index.m3u8
+Playboy Plus, http://rhsbjv7k.tvclub.xyz/iptv/3VDSMMR8L3C7UP/6242/index.m3u8
+Playboy Plus, https://hyf000.eu.org/live/80947108.php?id=102
+SUN MUSIC, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
+Sun TV HD, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
+亚洲武侠, http://php.jdshipin.com/TVOD/iptv.php?id=yzwx
 亞洲旅遊, http://37.27.111.214:8080/live/10/hls.m3u8
-# 旅游美食
-# 湖南系
+亞洲旅遊, http://4gtv.mumi.rip:9877/250/4gtv-4gtv076/index.m3u8
+亞洲旅遊, http://4gtv.mumi.rip:9877/250/litv-longturn17/index.m3u8
+深圳都市, http://183.11.239.36:808/hls/140/index.m3u8
+深圳都市, http://183.30.199.23:8886/udp/239.77.1.124:5146
+深圳都市, http://183.30.199.23:8886/udp/239.77.1.176:5146
+深圳都市, http://113.90.244.16:4000/udp/239.77.1.124:5146
+深圳都市, http://113.90.244.16:4000/udp/239.77.1.176:5146
+湖南卫视[1920x1080], http://116.30.249.99:8088/udp/239.77.1.129:5146
 湖南卫视[1920x1080], http://113.104.184.159:7088/udp/239.77.1.129:5146
-湖南卫视[1920x1080], http://113.104.184.159:7088/udp/239.77.1.5:5146
+湖南卫视[1920x1080], http://116.30.249.99:8088/udp/239.77.0.88:5146
 湖南卫视[1920x1080], http://113.104.184.159:7088/udp/239.77.0.88:5146
-湖南卫视[1920x1080], http://113.104.184.159:7088/udp/239.77.0.127:5146
-湖南卫视[1920x1080], http://116.30.249.99:8088/udp/239.77.1.5:5146
-# 湖南系
-湖南都市, http://php.jdshipin.com:8880/iptv.php?id=hnds
+湖南卫视[1920x1080], http://113.104.184.159:7088/udp/239.77.1.5:5146
+湖南都市, http://kkk.jjjj.jiduo.me/api.php?n=tttt&id=7510&tk=23a9aca1f79f
+湖南都市, http://110.53.218.182:9902/tsfile/live/0127_1.m3u8
+湖南都市, http://116.128.242.83:9901/tsfile/live/0139_1.m3u8?key=txiptv&playlive=1&authid=0
+湖南都市, http://phonetx.qing.mgtv.com/nn_live/nn_x64/0.0&/HNDSMPP360.m3u8
+湖南都市, http://pili-live-snapshot.tv.hntvcloud.com/mg-tv/channel-6.m3u8
+美食星球, http://4gtv.mumi.rip:9877/237/4gtv-live120/index.m3u8
+美食星球, https://pixman.mytvsuper.com.mp/Smart.php?id=foodplanet_twn
