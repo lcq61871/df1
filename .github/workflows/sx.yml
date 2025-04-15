@@ -3,7 +3,7 @@ name: Run sx.py daily to filter IPTV streams
 on:
   schedule:
     # 每天在上海时间 8:00 和 20:00 运行，即 UTC 时间的 0:00 和 12:00
-    - cron: '0 0,10 * * *'  # 0 0,12 表示 UTC 时间的 0:00 和 12:00
+   - cron: '0 0/6 * * *'  # 0 0,12 表示 UTC 时间的 0:00 和 12:00
   workflow_dispatch:  # 允许手动触发
 
 jobs:
