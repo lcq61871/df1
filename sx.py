@@ -52,8 +52,8 @@ remote_urls = [
     'https://tv.iill.top/m3u/Gather',
     'https://gcore.jsdelivr.net/gh/Guovin/iptv-api@gd/output/result.m3u',
     'https://raw.githubusercontent.com/quninainaixi/quninainaixi/refs/heads/main/DSJ2024417.txt',
-    'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/173.txt',
-    'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/167.txt',
+    'https://raw.githubusercontent.com/meerl/iptr/refs/heads/main/iptv_list.txt',
+    'https://raw.githubusercontent.com/mlzlzj/iptv/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/108.txt',
     'https://raw.githubusercontent.com/lcq61871/df1/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
