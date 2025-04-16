@@ -51,7 +51,7 @@ remote_urls = [
     'https://raw.githubusercontent.com/chiang1102/a/refs/heads/main/test1.txt',
     'https://live.iptv365.org/live.txt',
     'https://freetv.fun/test_channels_taiwan.m3u',
-    'https://tv.iill.top/m3u/Gather',
+    'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
     'https://gcore.jsdelivr.net/gh/Guovin/iptv-api@gd/output/result.m3u',
     'https://raw.githubusercontent.com/quninainaixi/quninainaixi/refs/heads/main/DSJ2024417.txt',
     'https://raw.githubusercontent.com/meerl/iptr/refs/heads/main/iptv_list.txt',
