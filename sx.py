@@ -12,7 +12,7 @@ target_channels = [
     '湖南卫视[1920x1080]', '湖南都市', '深圳都市',
     'EYETV 旅游', '亞洲旅遊', '美食星球',
     '亚洲武侠', 'Now爆谷台', 'Now星影台',
-    '龍祥', 'Sun TV HD', 'SUN MUSIC', 'FASHION TV',
+    '龍祥電影', 'Sun TV HD', 'SUN MUSIC', 'FASHION TV',
     'Playboy Plus', '欧美艺术', '美国家庭'
 ]
 
@@ -45,7 +45,7 @@ except FileNotFoundError:
 remote_urls = [
     'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u',
-    'https://raw.githubusercontent.com/kkllllkkkk/kkllllkkkk.github.io/refs/heads/main/1.txt',
+    'https://raw.githubusercontent.com/twolater/iptv2025/964373950eec78e414de1063c41f157fc31f1e19/asia.m3u',
     'https://raw.githubusercontent.com/chiang1102/a/refs/heads/main/test1.txt',
     'https://live.iptv365.org/live.txt',
     'https://freetv.fun/test_channels_taiwan.m3u',
@@ -54,7 +54,11 @@ remote_urls = [
     'https://raw.githubusercontent.com/quninainaixi/quninainaixi/refs/heads/main/DSJ2024417.txt',
     'https://raw.githubusercontent.com/meerl/iptr/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/mlzlzj/iptv/refs/heads/main/iptv_list.txt',
-    'https://raw.githubusercontent.com/sqspot/tac/refs/heads/main/108.txt',
+    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/other.m3u',
+    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/AKTV.m3u',
+    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/test.m3u',
+    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/HKTW.m3u',
+    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/tv.m3u',
     'https://raw.githubusercontent.com/lcq61871/df1/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
