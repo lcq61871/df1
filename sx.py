@@ -38,9 +38,9 @@ print("✅ 已清理旧的输出文件")
 # ===== 收集源数据 =====
 all_lines = []
 try:
-    with open('iptv_list.txt', 'r', encoding='utf-8') as f:
+    with open('iptv_list3.txt', 'r', encoding='utf-8') as f:
         all_lines.extend(f.readlines())
-    print("📄 已读取本地 iptv_list.txt")
+    print("📄 已读取本地 iptv_list3.txt")
 except FileNotFoundError:
     print("⚠️ 本地文件未找到")
 
