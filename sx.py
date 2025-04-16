@@ -64,7 +64,7 @@ remote_urls = [
     'https://raw.githubusercontent.com/savetti1987/openclash/refs/heads/main/MyTV.m3u',
     'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/HKTW.m3u',
     'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/tv.m3u',
-    'https://raw.githubusercontent.com/lcq61871/df1/refs/heads/main/iptv_list.txt',
+    'https://raw.githubusercontent.com/wing13535/dianshi/7e41cbcf21168a97d3361e1eb42bf0327481de2e/ZHIBO.txt',
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
 
