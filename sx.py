@@ -65,7 +65,7 @@ remote_urls = [
     'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/other.m3u',
     'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/AKTV.m3u',
     'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/test.m3u',
-    'https://live.iptv365.org/live.txt',
+    'https://raw.githubusercontent.com/80947108/888/refs/heads/main/tv/FGlive.txt',
     'https://tv.iill.top/m3u/Gather',
     'https://raw.githubusercontent.com/KAN314go/k/bf079cc49e6c9595676e16f8f89069068acedc3e/Smart2.txt',
     'https://raw.githubusercontent.com/windrise1217/mytv/815f85ac1ddb7aa318c70b74f475c46a44ca0ea0/tvlist.m3u',
