@@ -9,7 +9,7 @@ import time
 target_channels = [
     'CCTV1 综合[1920x1080]', 'CCTV2 财经[1920x1080]', 'CCTV13 新闻[1920x1080]',
     'CCTV世界地理[1920x1080]', 'CCTV央视文化精品[1920x1080]',
-    '湖南卫视[1920x1080]', '湖南都市高清', '深圳都市',
+    '湖南卫视[1920x1080]', '湖南都市高清', '深圳都市频道',
     'EYETV 旅游', '亞洲旅遊', '美食星球',
     'TVN(TW)', 'tvN(TW)', '龍祥',
     'TVB星河', '千禧经典', '功夫台',
@@ -21,7 +21,7 @@ target_channels = [
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
 exclude_domains = ['kkk.jjjj.jiduo.me', 'www.freetv.top']  # 可以轻松在此添加更多域名
-timeout = 10
+timeout = 15
 max_workers = 20
 
 # ===== 确认当前目录并准备文件路径 =====
