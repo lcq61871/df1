@@ -1,4 +1,3 @@
-# sub.py
 import os
 import subprocess
 import requests
@@ -13,7 +12,7 @@ SUB_URLS = [
 ]
 
 CLASH_CONFIG = "clash_config.yaml"
-CLASH_BIN = "./clash-meta"
+CLASH_BIN = "./mihomo"
 PROXY = "http://127.0.0.1:7890"
 TEST_URL = "https://www.google.com/generate_204"
 TIMEOUT = 10
