@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y jq
-          pip install requests pyyaml
+          pip install requests pyyaml httpx
 
       - name: Get latest sing-box version
         id: get_version
@@ -36,7 +36,6 @@ jobs:
           tar -xvzf sing-box.tar.gz
           mv sing-box-*/sing-box ./
           chmod +x sing-box
-
 
       - name: Run sub.py to test and filter nodes
         run: |
