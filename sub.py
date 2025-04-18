@@ -60,11 +60,14 @@ def write_clash_config(proxies):
     with open(CLASH_CONFIG, "w", encoding="utf-8") as f:
         yaml.dump(config, f, allow_unicode=True)
     print(f"已生成 {CLASH_CONFIG}，包含 {len(proxies)} 个代理")
+    with open(CLASH_CONFIG, "r", encoding="utf-8") as f:
+        print(f"Clash 配置文件内容:\n{f.read()}")
 
 def start_clash():
-    with open("clash.log", "a") as log:
+    with open("clash.log", "w", encoding="utf-8") as log:
+        log.write("Clash 日志初始化\n")
         proc = subprocess.Popen([CLASH_BIN, "-f", CLASH_CONFIG], stdout=log, stderr=log)
-    print("🚀 Clash.meta 已启动，正在检查状态...")
+    print("🚀 Clash.meta 已启动，PID: {proc.pid}")
     for _ in range(30):
         try:
             r = requests.get("http://127.0.0.1:9090", timeout=2)
@@ -74,7 +77,7 @@ def start_clash():
             print(f"等待 Clash 启动: {str(e)}")
             time.sleep(1)
     print("❌ Clash.meta 启动失败")
-    with open("clash.log", "r") as log:
+    with open("clash.log", "r", encoding="utf-8") as log:
         print("Clash 日志:", log.read())
     proc.terminate()
     return None
@@ -103,70 +106,79 @@ def cleanup():
     print("已清理旧文件")
 
 def main():
-    cleanup()
-    with open("speed.txt", "w", encoding="utf-8") as f:
-        f.write("初始化\n")
-    with open("clash.log", "w", encoding="utf-8") as f:
-        f.write("Clash 日志初始化\n")
-    
-    proxies = merge_yaml_subs(SUB_URLS)
-    print(f"✅ 共获取: {len(proxies)} 个节点")
-
-    if not proxies:
-        print("❌ 未获取到节点，退出")
-        with open("speed.txt", "w", encoding="utf-8") as f:
-            f.write("未获取到节点\n")
-        return
-
-    write_clash_config(proxies)
-    clash = start_clash()
-    if not clash:
-        print("❌ Clash.meta 启动失败，中止")
-        with open("speed.txt", "w", encoding="utf-8") as f:
-            f.write("Clash.meta 启动失败\n")
-        return
-
     try:
-        r = requests.get("http://8.8.8.8", timeout=5)
-        print(f"✅ 网络连通性测试: 8.8.8.8 返回状态码 {r.status_code}")
-    except Exception as e:
-        print(f"❌ 网络连通性测试失败: {str(e)}")
+        cleanup()
+        with open("speed.txt", "w", encoding="utf-8") as f:
+            f.write("初始化\n")
+        with open("clash.log", "w", encoding="utf-8") as f:
+            f.write("Clash 日志初始化\n")
 
-    names = [p["name"] for p in proxies]
-    print(f"正在测试 {len(names)} 个代理...")
-    
-    valid = []
-    for test_url in TEST_URLS:
-        print(f"\n使用测试 URL: {test_url}")
-        results = asyncio.run(run_tests(names, test_url))
-        for i, (name, delay) in enumerate(results):
-            if delay is not None:
-                valid.append((proxies[i], delay))
-        if valid:
-            break
+        proxies = merge_yaml_subs(SUB_URLS)
+        print(f"✅ 共获取: {len(proxies)} 个节点")
 
-    clash.terminate()
-    clash.wait()
-    print("Clash 已终止")
+        if not proxies:
+            print("❌ 未获取到节点，退出")
+            with open("speed.txt", "w", encoding="utf-8") as f:
+                f.write("未获取到节点\n")
+            return
 
-    print(f"找到 {len(valid)} 个有效节点")
-    valid.sort(key=lambda x: x[1])
-    top = valid[:TOP_N]
+        write_clash_config(proxies)
+        clash = start_clash()
+        if not clash:
+            print("❌ Clash.meta 启动失败，中止")
+            with open("speed.txt", "w", encoding="utf-8") as f:
+                f.write("Clash.meta 启动失败\n")
+            return
 
-    with open("speed.txt", "w", encoding="utf-8") as f:
-        if not top:
-            print("❌ 未找到有效节点")
-            f.write("未找到有效节点\n")
+        try:
+            r = requests.get("http://8.8.8.8", timeout=5)
+            print(f"✅ 网络连通性测试: 8.8.8.8 返回状态码 {r.status_code}")
+        except Exception as e:
+            print(f"❌ 网络连通性测试失败: {str(e)}")
+
+        names = [p["name"] for p in proxies]
+        print(f"正在测试 {len(names)} 个代理...")
+        
+        valid = []
+        for test_url in TEST_URLS:
+            print(f"\n使用测试 URL: {test_url}")
+            results = asyncio.run(run_tests(names, test_url))
+            for i, (name, delay) in enumerate(results):
+                if delay is not None:
+                    valid.append((proxies[i], delay))
+            if valid:
+                break
+
+        print(f"找到 {len(valid)} 个有效节点")
+        valid.sort(key=lambda x: x[1])
+        top = valid[:TOP_N]
+
+        with open("speed.txt", "w", encoding="utf-8") as f:
+            if not top:
+                print("❌ 未找到有效节点")
+                f.write("未找到有效节点\n")
+            else:
+                for item in top:
+                    f.write(f"{item[0]['name']}: {item[1]} ms\n")
+
+        if top:
+            with open("nodes.yml", "w", encoding="utf-8") as f:
+                yaml.dump({"proxies": [item[0] for item in top]}, f, allow_unicode=True)
+            print(f"\n🎉 完成！保存了 {len(top)} 个节点到 nodes.yml 和 speed.txt")
         else:
-            for item in top:
-                f.write(f"{item[0]['name']}: {item[1]} ms\n")
+            print("❌ 未生成 nodes.yml，因为没有有效节点")
 
-    if top:
-        with open("nodes.yml", "w", encoding="utf-8") as f:
-            yaml.dump({"proxies": [item[0] for item in top]}, f, allow_unicode=True)
-        print(f"\n🎉 完成！保存了 {len(top)} 个节点到 nodes.yml 和 speed.txt")
-    else:
-        print("❌ 未生成 nodes.yml，因为没有有效节点")
+    except Exception as e:
+        print(f"❌ 脚本执行失败: {str(e)}")
+        with open("speed.txt", "w", encoding="utf-8") as f:
+            f.write(f"脚本执行失败: {str(e)}\n")
+        with open("clash.log", "a", encoding="utf-8") as f:
+            f.write(f"脚本执行失败: {str(e)}\n")
+    finally:
+        if 'clash' in locals():
+            clash.terminate()
+            clash.wait()
+            print("Clash 已终止")
 
 if __name__ == "__main__":
     main()
