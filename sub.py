@@ -14,7 +14,7 @@ CLASH_CONFIG = "clash_config.yaml"
 CLASH_BIN = "./clash-meta"
 PROXY = "http://127.0.0.1:7890"
 TEST_URL = "http://httpbin.org/status/200"
-TIMEOUT = 30  # 增加超时时间以提高成功率
+TIMEOUT = 30  # 增加超时时间
 TOP_N = 50
 
 def merge_yaml_subs(urls):
@@ -59,7 +59,7 @@ def start_clash():
     with open("clash.log", "w") as log:
         proc = subprocess.Popen([CLASH_BIN, "-f", CLASH_CONFIG], stdout=log, stderr=log)
     print("🚀 Clash.meta 已启动，正在检查状态...")
-    for _ in range(10):
+    for _ in range(15):  # 延长等待时间到 15 秒
         try:
             requests.get("http://127.0.0.1:9090", timeout=2)
             print("✅ Clash.meta 运行正常")
