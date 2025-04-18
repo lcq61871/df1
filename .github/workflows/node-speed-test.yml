@@ -23,7 +23,7 @@ jobs:
           sudo apt update
           sudo apt install -y jq
           pip install --upgrade pip
-          pip install requests pyyaml httpx
+          pip install requests pyyaml httpx==0.27.0
 
       - name: Download mihomo (Clash.Meta)
         run: |
@@ -38,13 +38,17 @@ jobs:
           echo "Running sub.py..."
           python sub.py || echo "sub.py exited with error"
           echo "Listing generated files:"
-          ls -l nodes.yml speed.txt || echo "Generated files not found"
+          ls -l nodes.yml speed.txt clash.log || echo "Some files not found"
+          echo "Content of speed.txt:"
+          cat speed.txt || echo "speed.txt is empty or not found"
+          echo "Content of clash.log:"
+          cat clash.log || echo "clash.log is empty or not found"
 
       - name: Commit and push results
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add nodes.yml speed.txt || true
+          git add nodes.yml speed.txt clash.log || true
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
