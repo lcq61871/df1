@@ -1,103 +1,65 @@
-import requests
-import yaml
-import subprocess
-import httpx
-import asyncio
-import time
-import json
+# sub.py
 import os
-from typing import List, Tuple
+import subprocess
+import requests
+import time
+import yaml
+import asyncio
+import httpx
 
-URLS = [
-    "https://raw.githubusercontent.com/mfbpn/tg_mfbpn_sub/refs/heads/main/trial.yaml",
-    "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes.meta.yml"
+SUB_URLS = [
+    "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes_IEPL.meta.yml",
+    "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes_TW.meta.yml"
 ]
 
-TOP_N = 50
-PROXY_ADDR = "127.0.0.1"
-PROXY_PORT = 2080
-SINGBOX_BIN = "./sing-box"
-CONFIG_FILE = "singbox_config.json"
+CLASH_CONFIG = "clash_config.yaml"
+CLASH_BIN = "./clash-meta"
+PROXY = "http://127.0.0.1:7890"
 TEST_URL = "https://www.google.com/generate_204"
 TIMEOUT = 10
+TOP_N = 50
 
-# 删除旧文件
-def cleanup():
-    for file in ["nodes.yml", "speed.txt", CONFIG_FILE]:
-        if os.path.exists(file):
-            os.remove(file)
-            print(f"🗑️ Removed old {file}")
+def merge_yaml_subs(urls):
+    all_nodes = []
+    for url in urls:
+        try:
+            r = requests.get(url, timeout=10)
+            data = yaml.safe_load(r.text)
+            if "proxies" in data:
+                all_nodes.extend(data["proxies"])
+        except Exception as e:
+            print(f"❌ Failed to fetch {url}: {e}")
+    return all_nodes
 
-def fetch_yaml(url: str):
-    try:
-        r = requests.get(url, timeout=10)
-        r.raise_for_status()
-        return yaml.safe_load(r.text)
-    except Exception as e:
-        print(f"❌ Failed to fetch {url} -> {e}")
-        return {}
-
-def extract_proxies(yaml_dict: dict):
-    return yaml_dict.get("proxies", [])
-
-def generate_singbox_config(proxies: List[dict]):
-    outbounds = []
-    for idx, proxy in enumerate(proxies):
-        proxy_type = proxy.get("type")
-        tag = f"node_{idx}"
-        config = {
-            "type": proxy_type,
-            "tag": tag,
-            "server": proxy.get("server"),
-            "port": proxy.get("port"),
-            "uuid": proxy.get("uuid"),
-            "alterId": proxy.get("alterId", 0),
-            "cipher": proxy.get("cipher", "auto"),
-            "password": proxy.get("password"),
-            "tls": proxy.get("tls", False),
-            "network": proxy.get("network", "tcp"),
-            "sni": proxy.get("sni"),
-            "skip-cert-verify": True,
-            "username": proxy.get("username"),
-            "plugin": proxy.get("plugin"),
-            "plugin-opts": proxy.get("plugin-opts")
-        }
-        config = {k: v for k, v in config.items() if v is not None}
-        outbounds.append(config)
-
+def write_clash_config(proxies):
     config = {
-        "log": {"level": "error"},
-        "dns": {"servers": ["https://8.8.8.8/dns-query"]},
-        "outbounds": [
-            {
-                "type": "selector",
-                "tag": "auto",
-                "outbounds": [f"node_{i}" for i in range(len(proxies))]
-            },
-            *outbounds
-        ],
-        "inbounds": [{
-            "type": "http",
-            "listen": PROXY_ADDR,
-            "listen_port": PROXY_PORT,
-            "tag": "http-in"
+        "port": 7890,
+        "socks-port": 7891,
+        "allow-lan": True,
+        "mode": "rule",
+        "log-level": "silent",
+        "proxies": proxies,
+        "proxy-groups": [{
+            "name": "auto",
+            "type": "url-test",
+            "url": TEST_URL,
+            "interval": 300,
+            "proxies": [p["name"] for p in proxies]
         }],
-        "route": {
-            "rules": [{"inbound": ["http-in"], "outbound": "auto"}]
-        }
+        "rules": ["MATCH,auto"]
     }
+    with open(CLASH_CONFIG, "w", encoding="utf-8") as f:
+        yaml.dump(config, f, allow_unicode=True)
 
-    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2)
+def start_clash():
+    return subprocess.Popen([CLASH_BIN, "-f", CLASH_CONFIG])
 
-def start_singbox():
-    return subprocess.Popen([SINGBOX_BIN, "run", "-c", CONFIG_FILE])
-
-async def test_speed(name: str):
-    proxy = f"http://{PROXY_ADDR}:{PROXY_PORT}"
+async def test_speed(name):
+    proxy = PROXY
+    headers = {"Proxy-Connection": "keep-alive"}
     try:
         start = time.time()
-        async with httpx.AsyncClient(proxies=proxy, timeout=TIMEOUT) as client:
+        async with httpx.AsyncClient(proxies=proxy, timeout=TIMEOUT, headers=headers) as client:
             r = await client.get(TEST_URL)
             if r.status_code == 204:
                 delay = round((time.time() - start) * 1000, 2)
@@ -108,53 +70,50 @@ async def test_speed(name: str):
     print(f"[✗] {name}: Failed")
     return name, None
 
-async def run_speed_tests(names: List[str]):
-    tasks = [test_speed(name) for name in names]
-    results = await asyncio.gather(*tasks)
-    return results
+async def run_tests(names):
+    return await asyncio.gather(*[test_speed(name) for name in names])
+
+def cleanup():
+    for f in ["nodes.yml", "speed.txt", CLASH_CONFIG]:
+        if os.path.exists(f):
+            os.remove(f)
 
 def main():
     cleanup()
-    all_proxies = []
-    for url in URLS:
-        y = fetch_yaml(url)
-        all_proxies += extract_proxies(y)
+    proxies = merge_yaml_subs(SUB_URLS)
+    print(f"✅ Total fetched: {len(proxies)} nodes")
 
-    print(f"Fetched {len(all_proxies)} nodes")
-    if not all_proxies:
+    if not proxies:
         print("❌ No nodes fetched. Exiting.")
         return
 
-    generate_singbox_config(all_proxies)
-    singbox = start_singbox()
-    time.sleep(3)  # wait for sing-box to start
+    write_clash_config(proxies)
+    clash = start_clash()
+    print("🚀 Clash.meta started, wait 5s...")
+    time.sleep(5)
 
-    node_names = [p.get("name", f"node_{i}") for i, p in enumerate(all_proxies)]
-    speeds = asyncio.run(run_speed_tests(node_names))
+    names = [p["name"] for p in proxies]
+    results = asyncio.run(run_tests(names))
 
-    singbox.terminate()
-    singbox.wait()
-    os.remove(CONFIG_FILE)
+    clash.terminate()
+    clash.wait()
 
-    # 配对节点与测速
-    results = []
-    for i, (name, delay) in enumerate(speeds):
-        if delay:
-            results.append((all_proxies[i], delay))
+    valid = []
+    for i, (name, delay) in enumerate(results):
+        if delay is not None:
+            valid.append((proxies[i], delay))
 
-    results.sort(key=lambda x: x[1])
-    top = results[:TOP_N]
+    valid.sort(key=lambda x: x[1])
+    top = valid[:TOP_N]
 
     with open("nodes.yml", "w", encoding="utf-8") as f:
-        yaml.dump({"proxies": [r[0] for r in top]}, f, allow_unicode=True)
+        yaml.dump({"proxies": [item[0] for item in top]}, f, allow_unicode=True)
 
     with open("speed.txt", "w", encoding="utf-8") as f:
         for item in top:
-            name = item[0].get("name", "unknown")
-            delay = item[1]
-            f.write(f"{name}: {delay} ms\n")
+            f.write(f"{item[0]['name']}: {item[1]} ms\n")
 
-    print(f"\n✅ Done! {len(top)} fastest nodes saved to nodes.yml and speed.txt")
+    print(f"\n🎉 Done! Saved {len(top)} nodes to nodes.yml and speed.txt")
 
 if __name__ == "__main__":
     main()
