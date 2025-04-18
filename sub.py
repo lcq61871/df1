@@ -1,86 +1,64 @@
 import requests
 import yaml
-import asyncio
-import httpx
-import time
+import base64
+import subprocess
+import os
 
+# 订阅链接
 SUB_URL = "https://raw.githubusercontent.com/mfbpn/tg_mfbpn_sub/refs/heads/main/trial.yaml"
-TEST_URLS = [
-    "https://www.google.com/generate_204",
-    "https://www.youtube.com",
-    "https://www.bing.com",
-    "https://www.cloudflare.com",
-    "https://www.baidu.com"
-]
-TIMEOUT = 10
-TOP_N = 50
 
-def fetch_nodes(url):
-    try:
-        r = requests.get(url, timeout=10)
-        raw = yaml.safe_load(r.text)
-        return raw.get("proxies", [])
-    except Exception as e:
-        print("❌ 获取订阅失败：", e)
-        return []
+# 输出文件名
+OUTPUT_FILE = "sub-new.yaml"
 
-async def test_node(proxy):
-    name = proxy.get("name")
-    type_ = proxy.get("type")
-    server = proxy.get("server")
-    port = proxy.get("port")
-    username = proxy.get("username", "")
-    password = proxy.get("password", "")
+# 测试网站列表
+TEST_SITES = ["https://www.google.com", "https://www.youtube.com", "https://www.netflix.com"]
 
-    # 支持类型
-    if type_ != "socks5":
-        print(f"跳过 {name}: 暂不支持 {type_}")
-        return name, None
+def fetch_subscription(url):
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.text
 
-    # 构建代理
-    proxy_url = f"socks5://{server}:{port}"
-    if username and password:
-        proxy_url = f"socks5://{username}:{password}@{server}:{port}"
+def parse_nodes(content):
+    # 解析 YAML 内容，提取节点信息
+    data = yaml.safe_load(content)
+    nodes = data.get('proxies', [])
+    return nodes
 
-    for test_url in TEST_URLS:
+def test_node_connectivity(node):
+    # 使用 Clash 或其他方式测试节点连通性
+    # 这里只是示例，实际应根据您的测试方法实现
+    for site in TEST_SITES:
         try:
-            start = time.time()
-            async with httpx.AsyncClient(proxies=proxy_url, timeout=TIMEOUT) as client:
-                res = await client.get(test_url)
-                if res.status_code in [200, 204]:
-                    delay = round((time.time() - start) * 1000, 2)
-                    print(f"✅ {name} 可用：{delay} ms [{test_url}]")
-                    return name, delay
-        except Exception:
-            continue
+            response = requests.get(site, timeout=5)
+            if response.status_code != 200:
+                return False
+        except:
+            return False
+    return True
 
-    print(f"❌ {name} 全部连接失败")
-    return name, None
+def filter_nodes(nodes):
+    # 筛选可用节点
+    available_nodes = []
+    for node in nodes:
+        if test_node_connectivity(node):
+            available_nodes.append(node)
+    return available_nodes
 
-async def test_all(proxies):
-    return await asyncio.gather(*[test_node(p) for p in proxies])
-
-def save_results(results, proxies):
-    usable = [(proxies[i], d) for i, (n, d) in enumerate(results) if d is not None]
-    usable.sort(key=lambda x: x[1])
-    top = usable[:TOP_N]
-
-    with open("nodes.yml", "w", encoding="utf-8") as f:
-        yaml.dump({"proxies": [item[0] for item in top]}, f, allow_unicode=True)
-
-    with open("speed.txt", "w", encoding="utf-8") as f:
-        for item in top:
-            f.write(f"{item[0]['name']}: {item[1]} ms\n")
-
-    print(f"✅ 筛选完成，可用节点：{len(top)}")
+def generate_clash_yaml(nodes):
+    # 生成 Clash YAML 配置
+    config = {
+        "proxies": nodes,
+        "proxy-groups": [],
+        "rules": []
+    }
+    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+        yaml.dump(config, f, allow_unicode=True)
 
 def main():
-    proxies = fetch_nodes(SUB_URL)
-    if not proxies:
-        return print("❌ 无可用节点")
-    print(f"🌐 共获取节点：{len(proxies)}")
-    results = asyncio.run(test_all(proxies))
-    save_results(results, proxies)
+    content = fetch_subscription(SUB_URL)
+    nodes = parse_nodes(content)
+    available_nodes = filter_nodes(nodes)
+    generate_clash_yaml(available_nodes)
 
 if __name__ == "__main__":
     main()
