@@ -1,40 +1,29 @@
-name: Daily IPTV + Node Speed Test
+name: 节点测速筛选
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'
+    - cron: "0 3 * * *"  # 每天凌晨3点自动运行
   workflow_dispatch:
 
 jobs:
-  run_scripts:
+  check:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y jq
-          pip install requests pyyaml httpx
+      - name: 安装依赖
+        run: pip install httpx pyyaml
 
-      - name: Download mihomo (Clash.Meta)
-        run: |
-          version=1.19.4
-          curl -Lo mihomo.gz "https://github.com/MetaCubeX/mihomo/releases/download/v${version}/mihomo-linux-amd64-v${version}.gz"
-          gunzip -c mihomo.gz > clash-meta
-          chmod +x clash-meta
+      - name: 执行测速筛选
+        run: python sub.py
 
-      - name: Run sub.py to test and filter nodes
+      - name: 提交结果
         run: |
-          echo "Running sub.py..."
-          python sub.py
-
-      - name: Commit and push results
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add nodes.yml speed.txt || true
-          git commit -m 'Update nodes and speeds' || echo "No changes to commit"
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add nodes.yml speed.txt
+          git commit -m "🔄 自动更新节点测速结果" || echo "No changes"
           git push
