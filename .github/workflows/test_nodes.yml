@@ -2,8 +2,8 @@ name: Daily IPTV + Node Speed Test
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'  # 每天 UTC 0:00 和 12:00（上海时间 8:00 和 20:00）
-  workflow_dispatch:  # 允许手动触发
+    - cron: '0 0,12 * * *'
+  workflow_dispatch:
 
 jobs:
   run_scripts:
@@ -19,39 +19,21 @@ jobs:
           sudo apt install -y jq
           pip install requests pyyaml httpx
 
-      - name: Get latest Mihomo version
-        id: get_mihomo_version
+      - name: Download Mihomo (Clash.Meta)
         run: |
-          version=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r .tag_name)
-          echo "version=${version}" >> $GITHUB_OUTPUT
-
-      - name: Download Mihomo binary
-        run: |
-          version="${{ steps.get_mihomo_version.outputs.version }}"
-          file="mihomo-linux-amd64-${version}.gz"
-          url="https://github.com/MetaCubeX/mihomo/releases/download/${version}/${file}"
-
-          echo "Downloading Mihomo: $url"
-          curl -Lo mihomo.gz --fail "$url"
+          curl -Lo mihomo.gz https://github.com/MetaCubeX/mihomo/releases/download/v1.19.4/mihomo-linux-amd64-v1.19.4.gz
           gunzip mihomo.gz
           chmod +x mihomo
 
       - name: Run sub.py to test and filter nodes
         run: |
           echo "Running sub.py..."
-          rm -f nodes.yml speed.txt
-          ./mihomo version  # 验证 Mihomo 正确下载
           python sub.py
-
-      - name: Run sx.py to filter IPTV streams
-        run: |
-          echo "Running sx.py..."
-          python sx.py
 
       - name: Commit and push results
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add nodes.yml speed.txt filtered_streams.txt || true
-          git commit -m 'Update nodes and IPTV streams' || echo "No changes to commit"
+          git add nodes.yml speed.txt || true
+          git commit -m 'Update nodes and speeds' || echo "No changes to commit"
           git push
