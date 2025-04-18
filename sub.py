@@ -1,74 +1,149 @@
 # sub.py
 import requests
 import yaml
-import socket
-import concurrent.futures
+import subprocess
+import httpx
+import asyncio
 import time
+import json
+import os
+from typing import List, Tuple
 
-# 下载 YAML 节点列表
 URLS = [
     "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes_IEPL.meta.yml",
     "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes_TW.meta.yml"
 ]
 
-def download_yaml(url):
+TOP_N = 50
+PROXY_ADDR = "127.0.0.1"
+PROXY_PORT = 2080
+SINGBOX_BIN = "./sing-box"
+CONFIG_FILE = "singbox_config.json"
+TEST_URL = "https://www.google.com/generate_204"
+TIMEOUT = 10
+
+def fetch_yaml(url: str):
     try:
-        res = requests.get(url, timeout=10)
-        res.raise_for_status()
-        return yaml.safe_load(res.text)
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        return yaml.safe_load(r.text)
     except Exception as e:
-        print(f"Error fetching {url}: {e}")
+        print(f"❌ Failed to fetch {url} -> {e}")
         return {}
 
-def test_node(node):
-    name = node.get("name", "unknown")
-    server = node.get("server")
-    port = node.get("port", 443)
-    if not server:
-        return None
+def extract_proxies(yaml_dict: dict):
+    return yaml_dict.get("proxies", [])
 
-    start = time.time()
+def generate_singbox_config(proxies: List[dict]):
+    outbounds = []
+    for idx, proxy in enumerate(proxies):
+        proxy_type = proxy.get("type")
+        tag = f"node_{idx}"
+        config = {
+            "type": proxy_type,
+            "tag": tag,
+            "server": proxy.get("server"),
+            "port": proxy.get("port"),
+            "uuid": proxy.get("uuid"),
+            "alterId": proxy.get("alterId", 0),
+            "cipher": proxy.get("cipher", "auto"),
+            "password": proxy.get("password"),
+            "tls": proxy.get("tls", False),
+            "network": proxy.get("network", "tcp"),
+            "sni": proxy.get("sni"),
+            "skip-cert-verify": True,
+            "username": proxy.get("username"),
+            "plugin": proxy.get("plugin"),
+            "plugin-opts": proxy.get("plugin-opts")
+        }
+        config = {k: v for k, v in config.items() if v is not None}
+        outbounds.append(config)
+
+    config = {
+        "log": {"level": "error"},
+        "dns": {"servers": ["https://8.8.8.8/dns-query"]},
+        "outbounds": [
+            {
+                "type": "selector",
+                "tag": "auto",
+                "outbounds": [f"node_{i}" for i in range(len(proxies))]
+            },
+            *outbounds
+        ],
+        "inbounds": [{
+            "type": "http",
+            "listen": PROXY_ADDR,
+            "listen_port": PROXY_PORT,
+            "tag": "http-in"
+        }],
+        "route": {
+            "rules": [{"inbound": ["http-in"], "outbound": "auto"}]
+        }
+    }
+
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=2)
+
+def start_singbox():
+    return subprocess.Popen([SINGBOX_BIN, "run", "-c", CONFIG_FILE])
+
+async def test_speed(name: str):
+    proxy = f"http://{PROXY_ADDR}:{PROXY_PORT}"
     try:
-        with socket.create_connection((server, port), timeout=3) as s:
-            latency = round((time.time() - start) * 1000, 2)
-            return (node, latency)
+        start = time.time()
+        async with httpx.AsyncClient(proxies=proxy, timeout=TIMEOUT) as client:
+            r = await client.get(TEST_URL)
+            if r.status_code == 204:
+                delay = round((time.time() - start) * 1000, 2)
+                print(f"[✓] {name}: {delay} ms")
+                return name, delay
     except:
-        return None
+        pass
+    print(f"[✗] {name}: Failed")
+    return name, None
+
+async def run_speed_tests(names: List[str]):
+    tasks = [test_speed(name) for name in names]
+    results = await asyncio.gather(*tasks)
+    return results
 
 def main():
-    all_nodes = []
+    all_proxies = []
     for url in URLS:
-        data = download_yaml(url)
-        if data and 'proxies' in data:
-            all_nodes.extend(data['proxies'])
+        y = fetch_yaml(url)
+        all_proxies += extract_proxies(y)
 
-    print(f"Total nodes fetched: {len(all_nodes)}")
+    print(f"Fetched {len(all_proxies)} nodes")
+    generate_singbox_config(all_proxies)
+    singbox = start_singbox()
+    time.sleep(3)  # wait for sing-box to start
 
-    valid_nodes = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
-        futures = [executor.submit(test_node, node) for node in all_nodes]
-        for f in concurrent.futures.as_completed(futures):
-            result = f.result()
-            if result:
-                valid_nodes.append(result)
+    node_names = [p.get("name", f"node_{i}") for i, p in enumerate(all_proxies)]
+    speeds = asyncio.run(run_speed_tests(node_names))
 
-    # 按延迟排序并选前 50 个
-    valid_nodes.sort(key=lambda x: x[1])
-    top_nodes = valid_nodes[:50]
+    singbox.terminate()
+    singbox.wait()
+    os.remove(CONFIG_FILE)
 
-    # 写入 nodes.yml
-    nodes_yml = {
-        "proxies": [node for node, _ in top_nodes]
-    }
-    with open("nodes.yml", "w", encoding='utf-8') as f:
-        yaml.dump(nodes_yml, f, allow_unicode=True)
+    # 配对节点与测速
+    results = []
+    for i, (name, delay) in enumerate(speeds):
+        if delay:
+            results.append((all_proxies[i], delay))
 
-    # 写入 speed.txt
-    with open("speed.txt", "w", encoding='utf-8') as f:
-        for node, delay in top_nodes:
-            f.write(f"{node['name']} - {node['server']}:{node['port']} - {delay}ms\n")
+    results.sort(key=lambda x: x[1])
+    top = results[:TOP_N]
 
-    print("nodes.yml and speed.txt generated.")
+    with open("nodes.yml", "w", encoding="utf-8") as f:
+        yaml.dump({"proxies": [r[0] for r in top]}, f, allow_unicode=True)
+
+    with open("speed.txt", "w", encoding="utf-8") as f:
+        for item in top:
+            name = item[0].get("name", "unknown")
+            delay = item[1]
+            f.write(f"{name}: {delay} ms\n")
+
+    print(f"\n✅ Done! {len(top)} fastest nodes saved to nodes.yml and speed.txt")
 
 if __name__ == "__main__":
     main()
