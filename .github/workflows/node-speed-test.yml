@@ -1,31 +1,32 @@
-name: 节点测速筛选
+name: 订阅节点测试与筛选
 
 on:
-  schedule:
-    - cron: "0 3 * * *"  # 每天凌晨3点
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'  # 每6小时运行一次
 
 jobs:
-  check:
+  test-nodes:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: 检出代码
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: 安装依赖
         run: |
-          pip install requests httpx pyyaml
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: 执行测速筛选
+      - name: 运行节点测试脚本
         run: python sub.py
 
-      - name: 提交结果
-        run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          git add nodes.yml speed.txt
-          git commit -m "🔄 自动更新节点测速结果" || echo "No changes"
-          git push
+      - name: 上传结果文件
+        uses: actions/upload-artifact@v3
+        with:
+          name: Clash-订阅输出
+          path: sub-new.yaml
