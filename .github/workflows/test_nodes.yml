@@ -1,56 +1,40 @@
-name: Daily IPTV + Node Speed Test
+name: Clash Meta SpeedTest
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'  # 每天 UTC 0:00 和 12:00（上海时间 8:00 和 20:00）
-  workflow_dispatch:  # 允许手动触发
+    - cron: '0 0,12 * * *'  # 每天 UTC 0点和12点运行（上海时间 8点和20点）
+  workflow_dispatch:
 
 jobs:
-  run_scripts:
+  test_nodes:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
       - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y jq
-          pip install requests pyyaml httpx
+        run: pip install httpx pyyaml
 
-      - name: Get latest sing-box version
-        id: get_version
+      - name: Download Mihomo
         run: |
-          version=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | jq -r .tag_name)
-          echo "Latest sing-box version: $version"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+        curl -Lo mihomo.gz https://github.com/MetaCubeX/mihomo/releases/download/v1.19.4/mihomo-linux-amd64-v1.19.4.gz
+          gunzip mihomo.gz
+          chmod +x mihomo
 
-      - name: Download and extract sing-box
-        run: |
-          curl -Lo sing-box.tar.gz --fail https://github.com/SagerNet/sing-box/releases/download/v1.11.7/sing-box-1.11.7-linux-amd64.tar.gz
-          if [ $? -ne 0 ]; then
-            echo "Failed to download sing-box, exiting."
-            exit 1
-          fi
-          tar -xvzf sing-box.tar.gz
-          mv sing-box-*/sing-box ./
-          chmod +x sing-box
 
-      - name: Run sub.py to test and filter nodes
-        run: |
-          echo "Running sub.py..."
-          python sub.py
+      - name: Run sub.py
+        run: python sub.py
 
-      - name: Run sx.py to filter IPTV streams
-        run: |
-          echo "Running sx.py..."
-          python sx.py
-
-      - name: Commit and push results
+      - name: Commit results
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add nodes.yml speed.txt filtered_streams.txt || true
-          git commit -m 'Update nodes and IPTV streams' || echo "No changes to commit"
+          git add nodes.yml speed.txt
+          git commit -m "Update nodes and speed test results" || echo "No changes"
           git push
