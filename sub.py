@@ -1,4 +1,3 @@
-# sub.py
 import requests
 import yaml
 import subprocess
@@ -21,6 +20,13 @@ SINGBOX_BIN = "./sing-box"
 CONFIG_FILE = "singbox_config.json"
 TEST_URL = "https://www.google.com/generate_204"
 TIMEOUT = 10
+
+# 删除旧文件
+def cleanup():
+    for file in ["nodes.yml", "speed.txt", CONFIG_FILE]:
+        if os.path.exists(file):
+            os.remove(file)
+            print(f"🗑️ Removed old {file}")
 
 def fetch_yaml(url: str):
     try:
@@ -108,12 +114,17 @@ async def run_speed_tests(names: List[str]):
     return results
 
 def main():
+    cleanup()
     all_proxies = []
     for url in URLS:
         y = fetch_yaml(url)
         all_proxies += extract_proxies(y)
 
     print(f"Fetched {len(all_proxies)} nodes")
+    if not all_proxies:
+        print("❌ No nodes fetched. Exiting.")
+        return
+
     generate_singbox_config(all_proxies)
     singbox = start_singbox()
     time.sleep(3)  # wait for sing-box to start
