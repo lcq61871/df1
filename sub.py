@@ -13,7 +13,7 @@ SUB_URLS = [
 CLASH_CONFIG = "clash_config.yaml"
 CLASH_BIN = "./clash-meta"
 PROXY = "http://127.0.0.1:7890"
-TEST_URLS = ["http://httpbin.org/status/200", "http://ipinfo.io/json", "http://1.1.1.1"]  # 备用测试 URL
+TEST_URLS = ["http://httpbin.org/status/200", "http://ipinfo.io/json", "http://1.1.1.1"]
 TIMEOUT = 40
 TOP_N = 50
 
@@ -41,6 +41,12 @@ def write_clash_config(proxies):
         "mode": "rule",
         "log-level": "debug",
         "external-controller": "127.0.0.1:9090",
+        "dns": {
+            "enable": True,
+            "listen": "0.0.0.0:53",
+            "default-nameserver": ["8.8.8.8", "1.1.1.1"],
+            "nameserver": ["8.8.8.8", "1.1.1.1"]
+        },
         "proxies": proxies,
         "proxy-groups": [{
             "name": "auto",
@@ -56,15 +62,16 @@ def write_clash_config(proxies):
     print(f"已生成 {CLASH_CONFIG}，包含 {len(proxies)} 个代理")
 
 def start_clash():
-    with open("clash.log", "w") as log:
+    with open("clash.log", "a") as log:
         proc = subprocess.Popen([CLASH_BIN, "-f", CLASH_CONFIG], stdout=log, stderr=log)
     print("🚀 Clash.meta 已启动，正在检查状态...")
-    for _ in range(20):
+    for _ in range(30):
         try:
-            requests.get("http://127.0.0.1:9090", timeout=2)
-            print("✅ Clash.meta 运行正常")
+            r = requests.get("http://127.0.0.1:9090", timeout=2)
+            print(f"✅ Clash.meta 运行正常，状态码: {r.status_code}")
             return proc
-        except:
+        except Exception as e:
+            print(f"等待 Clash 启动: {str(e)}")
             time.sleep(1)
     print("❌ Clash.meta 启动失败")
     with open("clash.log", "r") as log:
@@ -77,7 +84,6 @@ async def test_speed(name, test_url):
     print(f"正在测试 {name} 使用 {test_url}...")
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT, headers=headers) as client:
-            # 设置代理通过 HTTP CONNECT
             r = await client.get(test_url, proxies={"http://": PROXY, "https://": PROXY})
             if r.status_code in [200, 204]:
                 delay = round(r.elapsed.total_seconds() * 1000, 2)
@@ -98,6 +104,11 @@ def cleanup():
 
 def main():
     cleanup()
+    with open("speed.txt", "w", encoding="utf-8") as f:
+        f.write("初始化\n")
+    with open("clash.log", "w", encoding="utf-8") as f:
+        f.write("Clash 日志初始化\n")
+    
     proxies = merge_yaml_subs(SUB_URLS)
     print(f"✅ 共获取: {len(proxies)} 个节点")
 
@@ -115,6 +126,12 @@ def main():
             f.write("Clash.meta 启动失败\n")
         return
 
+    try:
+        r = requests.get("http://8.8.8.8", timeout=5)
+        print(f"✅ 网络连通性测试: 8.8.8.8 返回状态码 {r.status_code}")
+    except Exception as e:
+        print(f"❌ 网络连通性测试失败: {str(e)}")
+
     names = [p["name"] for p in proxies]
     print(f"正在测试 {len(names)} 个代理...")
     
@@ -130,25 +147,26 @@ def main():
 
     clash.terminate()
     clash.wait()
+    print("Clash 已终止")
 
     print(f"找到 {len(valid)} 个有效节点")
     valid.sort(key=lambda x: x[1])
     top = valid[:TOP_N]
 
-    if not top:
-        print("❌ 未找到有效节点")
-        with open("speed.txt", "w", encoding="utf-8") as f:
-            f.write("未找到有效节点\n")
-        return
-
-    with open("nodes.yml", "w", encoding="utf-8") as f:
-        yaml.dump({"proxies": [item[0] for item in top]}, f, allow_unicode=True)
-
     with open("speed.txt", "w", encoding="utf-8") as f:
-        for item in top:
-            f.write(f"{item[0]['name']}: {item[1]} ms\n")
+        if not top:
+            print("❌ 未找到有效节点")
+            f.write("未找到有效节点\n")
+        else:
+            for item in top:
+                f.write(f"{item[0]['name']}: {item[1]} ms\n")
 
-    print(f"\n🎉 完成！保存了 {len(top)} 个节点到 nodes.yml 和 speed.txt")
+    if top:
+        with open("nodes.yml", "w", encoding="utf-8") as f:
+            yaml.dump({"proxies": [item[0] for item in top]}, f, allow_unicode=True)
+        print(f"\n🎉 完成！保存了 {len(top)} 个节点到 nodes.yml 和 speed.txt")
+    else:
+        print("❌ 未生成 nodes.yml，因为没有有效节点")
 
 if __name__ == "__main__":
     main()
