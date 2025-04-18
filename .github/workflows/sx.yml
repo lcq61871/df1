@@ -1,12 +1,13 @@
-name: Run sx.py and sub.py daily
+name: Run sx.py daily to filter IPTV streams
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'  # UTC 时间 0:00 和 12:00，即上海时间 8:00 和 20:00
-  workflow_dispatch:
+    # 每天在上海时间 8:00 和 20:00 运行，即 UTC 时间的 0:00 和 12:00
+   - cron: '0 0/6 * * *'  # 0 0,12 表示 UTC 时间的 0:00 和 12:00
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  run_scripts:
+  run_sx_script:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,22 +21,37 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests pyyaml
+          pip install requests  # 安装 requests 库
 
-      - name: Run sx.py script to filter IPTV streams
+      - name: Remove old filtered_streams.txt if exists
+        run: |
+          if [ -f filtered_streams.txt ]; then
+            rm filtered_streams.txt
+            echo "Old filtered_streams.txt removed."
+          else
+            echo "No old filtered_streams.txt file to remove."
+          fi
+
+      - name: Run sx.py script to filter streams
         run: |
           echo "Running sx.py script..."
           python sx.py
 
-      - name: Run sub.py script to test and select nodes
+      - name: Check if filtered_streams.txt was generated
         run: |
-          echo "Running sub.py script..."
-          python sub.py
+          echo "Checking if filtered_streams.txt exists..."
+          if [ -f filtered_streams.txt ]; then
+            echo "filtered_streams.txt generated successfully."
+          else
+            echo "filtered_streams.txt was not generated. Checking contents of current directory:"
+            ls -l
+            exit 1
+          fi
 
-      - name: Commit and push generated files
+      - name: Commit and push changes if filtered_streams.txt exists
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add filtered_streams.txt nodes.yml speed.txt
-          git commit -m 'Update filtered IPTV streams and node speed test' || echo "No changes to commit"
+          git add filtered_streams.txt
+          git commit -m 'Update filtered IPTV streams' || echo "No changes to commit"
           git push
