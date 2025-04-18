@@ -1,0 +1,37 @@
+name: Test and filter Clash nodes daily
+
+on:
+  schedule:
+    - cron: '0 0,12 * * *'  # UTC 0:00 和 12:00，即上海时间 8:00 和 20:00
+  workflow_dispatch:
+
+jobs:
+  run_sub_script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: |
+          pip install requests pyyaml httpx
+
+      - name: Download sing-box
+        run: |
+          curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-linux-amd64.tar.gz
+          tar -xvzf sing-box.tar.gz
+          mv sing-box-*/* ./
+          chmod +x sing-box
+
+      - name: Run sub.py script
+        run: |
+          python sub.py
+
+      - name: Commit and push results
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add nodes.yml speed.txt
+          git commit -m 'Update top 50 Clash nodes' || echo "No changes"
+          git push
