@@ -24,6 +24,7 @@ jobs:
           mv sing-box-*/* ./
           chmod +x sing-box
 
+
       - name: Run sub.py script
         run: |
           python sub.py
