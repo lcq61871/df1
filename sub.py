@@ -7,12 +7,11 @@ import asyncio
 import httpx
 
 SUB_URLS = [
-    "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes_IEPL.meta.yml",
-    "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes_TW.meta.yml"
+    "https://raw.githubusercontent.com/mfbpn/tg_mfbpn_sub/refs/heads/main/trial.yaml"
 ]
 
 CLASH_CONFIG = "clash_config.yaml"
-CLASH_BIN = "./mihomo"
+CLASH_BIN = "./clash-meta"
 PROXY = "http://127.0.0.1:7890"
 TEST_URL = "https://www.google.com/generate_204"
 TIMEOUT = 10
@@ -54,11 +53,10 @@ def start_clash():
     return subprocess.Popen([CLASH_BIN, "-f", CLASH_CONFIG])
 
 async def test_speed(name):
-    proxy = PROXY
     headers = {"Proxy-Connection": "keep-alive"}
     try:
         start = time.time()
-        async with httpx.AsyncClient(proxies=proxy, timeout=TIMEOUT, headers=headers) as client:
+        async with httpx.AsyncClient(proxies=PROXY, timeout=TIMEOUT, headers=headers) as client:
             r = await client.get(TEST_URL)
             if r.status_code == 204:
                 delay = round((time.time() - start) * 1000, 2)
