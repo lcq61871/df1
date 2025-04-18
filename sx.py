@@ -26,7 +26,7 @@ max_workers = 20
 
 # ===== 确认当前目录并准备文件路径 =====
 cwd = os.getcwd()
-log_path = os.path.join(cwd, 'speed_log.txt')
+log_path = os.path.join(cwd, 'speed_tv.txt')
 out_path = os.path.join(cwd, 'filtered_streams.txt')
 
 # ===== 删除旧文件 =====
