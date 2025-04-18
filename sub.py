@@ -31,11 +31,10 @@ def merge_yaml_subs(urls):
 
 def write_clash_config(proxies):
     config = {
-        "port": 7890,
-        "socks-port": 7891,
+        "mixed-port": 7890,
         "allow-lan": True,
         "mode": "rule",
-        "log-level": "silent",
+        "log-level": "info",
         "proxies": proxies,
         "proxy-groups": [{
             "name": "auto",
@@ -53,10 +52,11 @@ def start_clash():
     return subprocess.Popen([CLASH_BIN, "-f", CLASH_CONFIG])
 
 async def test_speed(name):
+    proxy = PROXY
     headers = {"Proxy-Connection": "keep-alive"}
     try:
         start = time.time()
-        async with httpx.AsyncClient(proxies=PROXY, timeout=TIMEOUT, headers=headers) as client:
+        async with httpx.AsyncClient(proxies=proxy, timeout=TIMEOUT, headers=headers) as client:
             r = await client.get(TEST_URL)
             if r.status_code == 204:
                 delay = round((time.time() - start) * 1000, 2)
