@@ -2,7 +2,7 @@ name: Daily IPTV + Node Speed Test
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'
+    - cron: '0 0,12 * * *'  # 每天 UTC 0:00 和 12:00（上海时间 8:00 和 20:00）
   workflow_dispatch:
 
 jobs:
@@ -19,11 +19,13 @@ jobs:
           sudo apt install -y jq
           pip install requests pyyaml httpx
 
-      - name: Download Mihomo (Clash.Meta)
+      - name: Download mihomo (Clash.Meta)
         run: |
-          curl -Lo mihomo.gz https://github.com/MetaCubeX/mihomo/releases/download/v1.19.4/mihomo-linux-amd64-v1.19.4.gz
+          version=1.19.4
+          curl -Lo mihomo.gz "https://github.com/MetaCubeX/mihomo/releases/download/v${version}/mihomo-linux-amd64-v${version}.gz"
           gunzip mihomo.gz
-          chmod +x mihomo
+          mv mihomo-linux-amd64-v${version} clash-meta
+          chmod +x clash-meta
 
       - name: Run sub.py to test and filter nodes
         run: |
