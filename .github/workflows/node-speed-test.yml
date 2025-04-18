@@ -2,7 +2,7 @@ name: 节点测速筛选
 
 on:
   schedule:
-    - cron: "0 3 * * *"  # 每天凌晨3点自动运行
+    - cron: "0 3 * * *"  # 每天凌晨3点
   workflow_dispatch:
 
 jobs:
@@ -10,12 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
       - name: 安装依赖
-        run: pip install httpx pyyaml
+        run: |
+          pip install requests httpx pyyaml
 
       - name: 执行测速筛选
         run: python sub.py
