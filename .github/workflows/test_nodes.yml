@@ -1,38 +1,52 @@
-name: Test and filter Clash nodes daily
+name: Daily IPTV + Node Speed Test
 
 on:
   schedule:
-    - cron: '0 0,12 * * *'  # UTC 0:00 和 12:00，即上海时间 8:00 和 20:00
-  workflow_dispatch:
+    - cron: '0 0,12 * * *'  # 每天 UTC 0:00 和 12:00（上海时间 8:00 和 20:00）
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  run_sub_script:
+  run_scripts:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
-          pip install requests pyyaml httpx
+          sudo apt update
+          sudo apt install -y jq
+          pip install requests pyyaml
 
-      - name: Download sing-box
+      - name: Get latest sing-box version
+        id: get_version
         run: |
-          curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-linux-amd64.tar.gz
+          version=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | jq -r .tag_name)
+          echo "Latest sing-box version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Download and extract sing-box
+        run: |
+          curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/${{ steps.get_version.outputs.version }}/sing-box-linux-amd64.tar.gz
           tar -xvzf sing-box.tar.gz
-          mv sing-box-*/* ./
+          mv sing-box-*/sing-box ./
           chmod +x sing-box
 
-
-      - name: Run sub.py script
+      - name: Run sub.py to test and filter nodes
         run: |
+          echo "Running sub.py..."
           python sub.py
+
+      - name: Run sx.py to filter IPTV streams
+        run: |
+          echo "Running sx.py..."
+          python sx.py
 
       - name: Commit and push results
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add nodes.yml speed.txt
-          git commit -m 'Update top 50 Clash nodes' || echo "No changes"
+          git add nodes.yml speed.txt filtered_streams.txt || true
+          git commit -m 'Update nodes and IPTV streams' || echo "No changes to commit"
           git push
