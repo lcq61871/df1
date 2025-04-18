@@ -1,32 +1,53 @@
-name: 订阅节点测试与筛选
+name: Daily IPTV + Node Speed Test
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 */6 * * *'  # 每6小时运行一次
+    - cron: '0 0,12 * * *'
+  workflow_dispatch:
 
 jobs:
-  test-nodes:
+  run_scripts:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: 设置 Python 环境
-        uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: 安装依赖
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          sudo apt update
+          sudo apt install -y jq
+          pip install --upgrade pip
+          pip install requests pyyaml httpx
 
-      - name: 运行节点测试脚本
-        run: python sub.py
+      - name: Download mihomo (Clash.Meta)
+        run: |
+          version=1.19.4
+          curl -Lo mihomo.gz "https://github.com/MetaCubeX/mihomo/releases/download/v${version}/mihomo-linux-amd64-v${version}.gz"
+          gunzip -c mihomo.gz > clash-meta
+          chmod +x clash-meta
+          ./clash-meta --version || echo "Failed to run clash-meta"
 
-      - name: 上传结果文件
-        uses: actions/upload-artifact@v3
-        with:
-          name: Clash-订阅输出
-          path: sub-new.yaml
+      - name: Run sub.py to test and filter nodes
+        run: |
+          echo "Running sub.py..."
+          python sub.py || echo "sub.py exited with error"
+          echo "Listing generated files:"
+          ls -l nodes.yml speed.txt || echo "Generated files not found"
+
+      - name: Commit and push results
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add nodes.yml speed.txt || true
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m 'Update nodes and speeds'
+            git push
+          fi
