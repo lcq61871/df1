@@ -1,107 +1,69 @@
-import os
-import subprocess
 import requests
-import time
 import yaml
 import asyncio
 import httpx
+import time
 
-SUB_URLS = [
-    "https://raw.githubusercontent.com/mfbpn/tg_mfbpn_sub/refs/heads/main/trial.yaml"
+SUB_URL = "https://raw.githubusercontent.com/mfbpn/tg_mfbpn_sub/refs/heads/main/trial.yaml"
+TEST_URLS = [
+    "https://www.google.com/generate_204",
+    "https://www.youtube.com",
+    "https://www.bing.com",
+    "https://www.cloudflare.com",
+    "https://www.baidu.com"
 ]
-
-CLASH_CONFIG = "clash_config.yaml"
-CLASH_BIN = "./clash-meta"
-PROXY = "http://127.0.0.1:7890"
-TEST_URL = "https://www.google.com/generate_204"
 TIMEOUT = 10
 TOP_N = 50
 
-def merge_yaml_subs(urls):
-    all_nodes = []
-    for url in urls:
-        try:
-            r = requests.get(url, timeout=10)
-            data = yaml.safe_load(r.text)
-            if "proxies" in data:
-                all_nodes.extend(data["proxies"])
-        except Exception as e:
-            print(f"❌ Failed to fetch {url}: {e}")
-    return all_nodes
-
-def write_clash_config(proxies):
-    config = {
-        "mixed-port": 7890,
-        "allow-lan": True,
-        "mode": "rule",
-        "log-level": "info",
-        "proxies": proxies,
-        "proxy-groups": [{
-            "name": "auto",
-            "type": "url-test",
-            "url": TEST_URL,
-            "interval": 300,
-            "proxies": [p["name"] for p in proxies]
-        }],
-        "rules": ["MATCH,auto"]
-    }
-    with open(CLASH_CONFIG, "w", encoding="utf-8") as f:
-        yaml.dump(config, f, allow_unicode=True)
-
-def start_clash():
-    return subprocess.Popen([CLASH_BIN, "-f", CLASH_CONFIG])
-
-async def test_speed(name):
-    proxy = PROXY
-    headers = {"Proxy-Connection": "keep-alive"}
+def fetch_nodes(url):
     try:
-        start = time.time()
-        async with httpx.AsyncClient(proxies=proxy, timeout=TIMEOUT, headers=headers) as client:
-            r = await client.get(TEST_URL)
-            if r.status_code == 204:
-                delay = round((time.time() - start) * 1000, 2)
-                print(f"[✓] {name}: {delay} ms")
-                return name, delay
-    except:
-        pass
-    print(f"[✗] {name}: Failed")
+        r = requests.get(url, timeout=10)
+        raw = yaml.safe_load(r.text)
+        return raw.get("proxies", [])
+    except Exception as e:
+        print("❌ 获取订阅失败：", e)
+        return []
+
+async def test_node(proxy):
+    name = proxy.get("name")
+    type_ = proxy.get("type")
+    server = proxy.get("server")
+    port = proxy.get("port")
+    username = proxy.get("username", "")
+    password = proxy.get("password", "")
+
+    # 支持类型
+    if type_ != "socks5":
+        print(f"跳过 {name}: 暂不支持 {type_}")
+        return name, None
+
+    # 构建代理
+    proxy_url = f"socks5://{server}:{port}"
+    if username and password:
+        proxy_url = f"socks5://{username}:{password}@{server}:{port}"
+
+    for test_url in TEST_URLS:
+        try:
+            start = time.time()
+            async with httpx.AsyncClient(proxies=proxy_url, timeout=TIMEOUT) as client:
+                res = await client.get(test_url)
+                if res.status_code in [200, 204]:
+                    delay = round((time.time() - start) * 1000, 2)
+                    print(f"✅ {name} 可用：{delay} ms [{test_url}]")
+                    return name, delay
+        except Exception:
+            continue
+
+    print(f"❌ {name} 全部连接失败")
     return name, None
 
-async def run_tests(names):
-    return await asyncio.gather(*[test_speed(name) for name in names])
+async def test_all(proxies):
+    return await asyncio.gather(*[test_node(p) for p in proxies])
 
-def cleanup():
-    for f in ["nodes.yml", "speed.txt", CLASH_CONFIG]:
-        if os.path.exists(f):
-            os.remove(f)
-
-def main():
-    cleanup()
-    proxies = merge_yaml_subs(SUB_URLS)
-    print(f"✅ Total fetched: {len(proxies)} nodes")
-
-    if not proxies:
-        print("❌ No nodes fetched. Exiting.")
-        return
-
-    write_clash_config(proxies)
-    clash = start_clash()
-    print("🚀 Clash.meta started, wait 5s...")
-    time.sleep(5)
-
-    names = [p["name"] for p in proxies]
-    results = asyncio.run(run_tests(names))
-
-    clash.terminate()
-    clash.wait()
-
-    valid = []
-    for i, (name, delay) in enumerate(results):
-        if delay is not None:
-            valid.append((proxies[i], delay))
-
-    valid.sort(key=lambda x: x[1])
-    top = valid[:TOP_N]
+def save_results(results, proxies):
+    usable = [(proxies[i], d) for i, (n, d) in enumerate(results) if d is not None]
+    usable.sort(key=lambda x: x[1])
+    top = usable[:TOP_N]
 
     with open("nodes.yml", "w", encoding="utf-8") as f:
         yaml.dump({"proxies": [item[0] for item in top]}, f, allow_unicode=True)
@@ -110,7 +72,15 @@ def main():
         for item in top:
             f.write(f"{item[0]['name']}: {item[1]} ms\n")
 
-    print(f"\n🎉 Done! Saved {len(top)} nodes to nodes.yml and speed.txt")
+    print(f"✅ 筛选完成，可用节点：{len(top)}")
+
+def main():
+    proxies = fetch_nodes(SUB_URL)
+    if not proxies:
+        return print("❌ 无可用节点")
+    print(f"🌐 共获取节点：{len(proxies)}")
+    results = asyncio.run(test_all(proxies))
+    save_results(results, proxies)
 
 if __name__ == "__main__":
     main()
