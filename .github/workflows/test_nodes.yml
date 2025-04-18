@@ -28,10 +28,15 @@ jobs:
 
       - name: Download and extract sing-box
         run: |
-          curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/${{ steps.get_version.outputs.version }}/sing-box-linux-amd64.tar.gz
+          curl -Lo sing-box.tar.gz --fail https://github.com/SagerNet/sing-box/releases/download/v1.11.7/sing-box-1.11.7-linux-amd64.tar.gz
+          if [ $? -ne 0 ]; then
+            echo "Failed to download sing-box, exiting."
+            exit 1
+          fi
           tar -xvzf sing-box.tar.gz
           mv sing-box-*/sing-box ./
           chmod +x sing-box
+
 
       - name: Run sub.py to test and filter nodes
         run: |
