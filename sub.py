@@ -13,8 +13,8 @@ SUB_URLS = [
 CLASH_CONFIG = "clash_config.yaml"
 CLASH_BIN = "./clash-meta"
 PROXY = "http://127.0.0.1:7890"
-TEST_URL = "http://httpbin.org/status/200"
-TIMEOUT = 30  # 增加超时时间
+TEST_URLS = ["http://httpbin.org/status/200", "http://ipinfo.io/json", "http://1.1.1.1"]  # 备用测试 URL
+TIMEOUT = 40
 TOP_N = 50
 
 def merge_yaml_subs(urls):
@@ -45,7 +45,7 @@ def write_clash_config(proxies):
         "proxy-groups": [{
             "name": "auto",
             "type": "url-test",
-            "url": TEST_URL,
+            "url": TEST_URLS[0],
             "interval": 300,
             "proxies": [p["name"] for p in proxies]
         }],
@@ -59,7 +59,7 @@ def start_clash():
     with open("clash.log", "w") as log:
         proc = subprocess.Popen([CLASH_BIN, "-f", CLASH_CONFIG], stdout=log, stderr=log)
     print("🚀 Clash.meta 已启动，正在检查状态...")
-    for _ in range(15):  # 延长等待时间到 15 秒
+    for _ in range(20):
         try:
             requests.get("http://127.0.0.1:9090", timeout=2)
             print("✅ Clash.meta 运行正常")
@@ -72,24 +72,23 @@ def start_clash():
     proc.terminate()
     return None
 
-async def test_speed(name):
-    proxy = PROXY
+async def test_speed(name, test_url):
     headers = {"Proxy-Connection": "keep-alive"}
-    print(f"正在测试 {name}...")
+    print(f"正在测试 {name} 使用 {test_url}...")
     try:
-        start = time.time()
-        async with httpx.AsyncClient(proxies=proxy, timeout=TIMEOUT, headers=headers) as client:
-            r = await client.get(TEST_URL)
-            if r.status_code == 200:
-                delay = round((time.time() - start) * 1000, 2)
+        async with httpx.AsyncClient(timeout=TIMEOUT, headers=headers) as client:
+            # 设置代理通过 HTTP CONNECT
+            r = await client.get(test_url, proxies={"http://": PROXY, "https://": PROXY})
+            if r.status_code in [200, 204]:
+                delay = round(r.elapsed.total_seconds() * 1000, 2)
                 print(f"[✓] {name}: {delay} ms")
                 return name, delay
     except Exception as e:
         print(f"[✗] {name}: 测试失败 ({str(e)})")
     return name, None
 
-async def run_tests(names):
-    return await asyncio.gather(*[test_speed(name) for name in names])
+async def run_tests(names, test_url):
+    return await asyncio.gather(*[test_speed(name, test_url) for name in names])
 
 def cleanup():
     for f in ["nodes.yml", "speed.txt", CLASH_CONFIG, "clash.log"]:
@@ -118,15 +117,19 @@ def main():
 
     names = [p["name"] for p in proxies]
     print(f"正在测试 {len(names)} 个代理...")
-    results = asyncio.run(run_tests(names))
+    
+    valid = []
+    for test_url in TEST_URLS:
+        print(f"\n使用测试 URL: {test_url}")
+        results = asyncio.run(run_tests(names, test_url))
+        for i, (name, delay) in enumerate(results):
+            if delay is not None:
+                valid.append((proxies[i], delay))
+        if valid:
+            break
 
     clash.terminate()
     clash.wait()
-
-    valid = []
-    for i, (name, delay) in enumerate(results):
-        if delay is not None:
-            valid.append((proxies[i], delay))
 
     print(f"找到 {len(valid)} 个有效节点")
     valid.sort(key=lambda x: x[1])
