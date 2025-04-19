@@ -1,4 +1,4 @@
-name: Advanced Node Test
+name: Node Validator Pro
 
 on:
   schedule:
@@ -9,64 +9,41 @@ permissions:
   contents: write
 
 jobs:
-  test:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 40
     
     steps:
-    - name: Checkout code
+    - name: 检出代码
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Setup environment
+      
+    - name: 安装基础依赖
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           curl \
-          netcat-openbsd \
+          jq \
           python3 \
           python3-pip \
-          jq \
-          socat
-
-        # 使用sudo安装Xray
-        sudo bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+          v2ray-core  # 使用官方打包版本
         
-        # 验证安装
-        /usr/local/bin/xray -version || echo "Xray安装验证失败"
-
-    - name: Setup Python
+    - name: 配置Python环境
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-
-    - name: Install Python dependencies
+        
+    - name: 安装Python依赖
       run: pip install pyyaml
-
-    - name: Run tester
+      
+    - name: 运行测试脚本
       run: |
         chmod +x sub.py
         python3 sub.py
-
-    - name: Verify results
-      run: |
-        echo "=== 测试结果 ==="
-        ls -l output/
-        [ -f output/nodes.yml ] && echo "nodes.yml存在" || echo "nodes.yml不存在"
-        [ -f output/speed.txt ] && echo "speed.txt存在" || echo "speed.txt不存在"
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: node-results
-        path: output/
-        retention-days: 3
-
-    - name: Commit results
+        
+    - name: 提交结果
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "自动更新节点测试结果 [skip ci]"
+        commit_message: "自动更新优质节点列表 [skip ci]"
         file_pattern: |
           output/nodes.yml
           output/speed.txt
