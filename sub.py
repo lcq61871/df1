@@ -96,8 +96,7 @@ def test_node(node):
 def main():
     # 加载节点源
     sources = [
-        "https://raw.githubusercontent.com/PangTouY00/Auto_proxy/f5cd95da929d1c4d10fe0ef3a71f9689dca99f67/sub/2504/250419.txt",
-        "https://raw.githubusercontent.com/Bear-biscuit/chromego_merge/refs/heads/main/sub/meta_new.yaml",
+        "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes_TW.meta.yml",
         "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@main/trial.yaml"
     ]
     
