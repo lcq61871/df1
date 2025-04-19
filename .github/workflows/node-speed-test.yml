@@ -1,37 +1,68 @@
-name: Advanced Node Checker
+name: Enhanced Node Checker
 
 on:
-  schedule:
-    - cron: '0 */3 * * *'
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+
+env:
+  PYTHON_VERSION: '3.10'
+  MAX_RETRY: 3
 
 jobs:
-  check:
+  checker:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Setup Python
+
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
-    
-    - name: Install dependencies
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install system dependencies
       run: |
-        sudo apt-get install -y libsodium-dev
-        pip install requests pyyaml shadowsocks v2ray-core
-    
-    - name: Run checker
-      run: python sub.py
+        sudo apt-get update
+        sudo apt-get install -y \
+          libsodium-dev \
+          build-essential
+
+    - name: Install Python packages
+      run: |
+        pip install --upgrade pip
+        pip install \
+          requests==2.31.0 \
+          pyyaml==6.0.1 \
+          shadowsocks==3.0.0 \
+          v2ray-core==5.4.1
+
+    - name: Run node checker
+      run: |
+        retry=0
+        until python sub.py || [ $retry -eq $MAX_RETRY ]; do
+          retry=$((retry+1))
+          echo "Retry attempt $retry..."
+          sleep 5
+        done
       env:
-        DEBUG: 'True'
-        TIMEOUT: '15'
-    
+        DEBUG: 'true'
+        TIMEOUT: '20'
+
     - name: Upload results
-      uses: actions/upload-artifact@v3
+      if: success()
+      uses: actions/upload-artifact@v4
       with:
-        name: nodes-result
+        name: node-results
         path: |
           nodes.yml
           speed.txt
+        retention-days: 3
+
+    - name: Push to repository
+      if: success()
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main
+        force: true
