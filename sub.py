@@ -10,15 +10,14 @@ from tempfile import NamedTemporaryFile
 import signal
 
 DEBUG = True
-TIMEOUT = 15  # 超时时间 15 秒
+TIMEOUT = 8  # 超时时间 8 秒
 TEST_URLS = [
-    "http://cp.cloudflare.com/generate_204",
-    "http://www.qualcomm.com/generate_204",
-    "http://www.apple.com/library/test/success.html"
+    "http://cp.cloudflare.com/generate_204"
 ]
 XRAY_BIN = "/usr/local/bin/xray"
 HYSTERIA_BIN = "/usr/local/bin/hysteria"
-MAX_NODES = 500  # 限制测试节点数
+MAX_NODES = 800  # 限制测试节点数
+MAX_THREADS = 5  # 增加到 5 线程
 
 def log(message):
     if DEBUG:
@@ -28,7 +27,7 @@ def kill_process(proc):
     """强制终止进程"""
     try:
         proc.terminate()
-        proc.wait(timeout=3)
+        proc.wait(timeout=2)
     except subprocess.TimeoutExpired:
         proc.kill()
     except Exception:
@@ -86,18 +85,18 @@ def test_with_xray(node, protocol):
             config_path = f.name
 
         proc = subprocess.Popen([XRAY_BIN, "run", "-c", config_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        time.sleep(1)
+        time.sleep(0.5)  # 缩短等待时间
 
         for test_url in TEST_URLS:
             try:
                 start = time.time()
-                cmd = ["curl", "-sS", "--connect-timeout", "8", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
+                cmd = ["curl", "-sS", "--connect-timeout", "3", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
                 latency = (time.time() - start) * 1000
 
                 stderr = result.stderr.strip() if result.stderr else "无错误输出"
                 log(f"{protocol.upper()} {node.get('name')} (URL={test_url}): 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms, 错误={stderr}")
-                if result.stdout.strip() in ["200", "204", "301", "302", "404"]:  # 临时放宽
+                if result.stdout.strip() in ["200", "204", "301", "302", "404"]:
                     return latency
             except subprocess.TimeoutExpired:
                 log(f"{protocol.upper()} {node.get('name')} (URL={test_url}): 超时")
@@ -128,12 +127,12 @@ def test_hysteria2(node):
             config_path = f.name
 
         proc = subprocess.Popen([HYSTERIA_BIN, "client", "-c", config_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        time.sleep(1)
+        time.sleep(0.5)
 
         for test_url in TEST_URLS:
             try:
                 start = time.time()
-                cmd = ["curl", "-sS", "--connect-timeout", "8", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
+                cmd = ["curl", "-sS", "--connect-timeout", "3", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
                 latency = (time.time() - start) * 1000
 
@@ -188,7 +187,7 @@ def test_proxy(node):
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(protocol_handlers[proto], node)
         try:
-            return future.result(timeout=TIMEOUT + 5)
+            return future.result(timeout=TIMEOUT + 2)
         except concurrent.futures.TimeoutError:
             log(f"❌ 超时: {node.get('name')}")
             return None
@@ -212,7 +211,6 @@ def main():
                 filtered_nodes = [node for node in nodes if node.get("type", "").lower() != "ssr"]
                 all_nodes.extend(filtered_nodes)
                 log(f"✅ 加载 {len(nodes)} 节点（过滤后 {len(filtered_nodes)}）: {url}")
-                # 统计协议分布
                 protocols = {}
                 for node in filtered_nodes:
                     proto = node.get("type", "unknown").lower()
@@ -247,7 +245,7 @@ def main():
     log(f"🔍 限制测试: {len(unique_nodes)} 节点")
 
     valid_results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         futures = {executor.submit(test_proxy, node): node for node in unique_nodes}
         for future in concurrent.futures.as_completed(futures):
             node = futures[future]
