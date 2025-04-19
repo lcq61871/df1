@@ -13,10 +13,12 @@ TIMEOUT = 30  # 超时时间 30 秒
 TEST_URLS = [
     "https://www.gstatic.com/generate_204",
     "https://www.google.com/generate_204",
-    "http://detectportal.firefox.com/success.txt"
+    "http://detectportal.firefox.com/success.txt",
+    "http://cp.cloudflare.com/generate_204"
 ]
 XRAY_BIN = "/usr/local/bin/xray"
 HYSTERIA_BIN = "/usr/local/bin/hysteria"
+MAX_NODES = 100  # 限制测试节点数量
 
 def log(message):
     if DEBUG:
@@ -108,22 +110,6 @@ def generate_xray_config(node, protocol):
             ]
         }
 
-    elif protocol == "ssr":
-        config["outbounds"][0]["settings"] = {
-            "servers": [
-                {
-                    "address": node["server"],
-                    "port": int(node["port"]),
-                    "method": node["cipher"],
-                    "password": node["password"],
-                    "obfs": node.get("obfs", "plain"),
-                    "obfsParam": node.get("obfs-param", ""),
-                    "protocol": node.get("protocol", "origin"),
-                    "protocolParam": node.get("protocol-param", "")
-                }
-            ]
-        }
-
     return config
 
 # ----------------- 协议测试函数 -----------------
@@ -169,7 +155,7 @@ def test_with_xray(node, protocol):
                 stderr = xray_proc.stderr.read().decode('utf-8', errors='ignore') if xray_proc.stderr else ""
                 log(f"{protocol.upper()} 测试 {node.get('name')} (URL={test_url}): HTTP 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms, Xray 日志={stderr}")
 
-                if result.stdout.strip() == "204" or (test_url.endswith("success.txt") and result.stdout.strip() == "200"):
+                if result.stdout.strip() in ["200", "204", "301"]:  # 放宽状态码
                     # 清理 Xray 进程
                     xray_proc.terminate()
                     try:
@@ -200,6 +186,14 @@ def test_with_xray(node, protocol):
     except Exception as e:
         log(f"{protocol.upper()} 测试失败 {node.get('name')}: {str(e)}")
         return None
+    finally:
+        # 确保进程被杀死
+        if 'xray_proc' in locals():
+            xray_proc.terminate()
+            try:
+                xray_proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                xray_proc.kill()
 
 def test_hysteria2(node):
     """测试 Hysteria2 协议"""
@@ -247,7 +241,7 @@ def test_hysteria2(node):
                 stderr = hysteria_proc.stderr.read().decode('utf-8', errors='ignore') if hysteria_proc.stderr else ""
                 log(f"Hysteria2 测试 {node.get('name')} (URL={test_url}): HTTP 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms, Hysteria2 日志={stderr}")
 
-                if result.stdout.strip() == "204" or (test_url.endswith("success.txt") and result.stdout.strip() == "200"):
+                if result.stdout.strip() in ["200", "204", "301"]:  # 放宽状态码
                     # 清理进程
                     hysteria_proc.terminate()
                     try:
@@ -278,6 +272,14 @@ def test_hysteria2(node):
     except Exception as e:
         log(f"Hysteria2 测试失败 {node.get('name')}: {str(e)}")
         return None
+    finally:
+        # 确保进程被杀死
+        if 'hysteria_proc' in locals():
+            hysteria_proc.terminate()
+            try:
+                hysteria_proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                hysteria_proc.kill()
 
 def test_proxy(node):
     """协议测试分发器"""
@@ -287,7 +289,6 @@ def test_proxy(node):
         "vless": lambda n: test_with_xray(n, "vless"),
         "trojan": lambda n: test_with_xray(n, "trojan"),
         "hysteria2": test_hysteria2,
-        "ssr": lambda n: test_with_xray(n, "ssr"),
     }
 
     proto = node.get("type", "").lower()
@@ -302,7 +303,6 @@ def test_proxy(node):
         "vless": ["server", "port", "uuid"],
         "trojan": ["server", "port", "password"],
         "hysteria2": ["server", "port", "password"],
-        "ssr": ["server", "port", "cipher", "password", "obfs", "protocol"]
     }.get(proto, [])
 
     if any(field not in node for field in required_fields):
@@ -325,12 +325,10 @@ def main():
             resp.raise_for_status()
             data = yaml.safe_load(resp.text)
             nodes = data.get("proxies", [])
-            # 可选：过滤 SSR 节点
-            # filtered_nodes = [node for node in nodes if node.get("type", "").lower() != "ssr"]
-            # all_nodes.extend(filtered_nodes)
-            # log(f"✅ 成功加载 {len(nodes)} 节点（过滤后 {len(filtered_nodes)} 个） from {url}")
-            all_nodes.extend(nodes)
-            log(f"✅ 成功加载 {len(nodes)} 节点 from {url}")
+            # 过滤 SSR 节点
+            filtered_nodes = [node for node in nodes if node.get("type", "").lower() != "ssr"]
+            all_nodes.extend(filtered_nodes)
+            log(f"✅ 成功加载 {len(nodes)} 节点（过滤后 {len(filtered_nodes)} 个） from {url}")
         except Exception as e:
             log(f"❌ 加载失败 {url}: {str(e)}")
 
@@ -344,9 +342,13 @@ def main():
             unique_nodes.append(node)
     log(f"🔍 去重后节点数: {len(unique_nodes)}")
 
+    # 限制测试节点数量
+    unique_nodes = unique_nodes[:MAX_NODES]
+    log(f"🔍 限制测试节点数: {len(unique_nodes)}")
+
     # 并发测试
     valid_results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:  # 减少并发
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:  # 减少并发
         futures = {executor.submit(test_proxy, node): node for node in unique_nodes}
 
         for future in concurrent.futures.as_completed(futures):
