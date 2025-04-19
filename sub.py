@@ -1,4 +1,3 @@
-# sub.py
 import os
 import yaml
 import time
@@ -12,164 +11,256 @@ from tempfile import NamedTemporaryFile
 DEBUG = True
 TIMEOUT = 20
 TEST_URL = "https://www.gstatic.com/generate_204"
+XRAY_BIN = "/usr/local/bin/xray"
+HYSTERIA_BIN = "/usr/local/bin/hysteria"
 
 def log(message):
     if DEBUG:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
 
+# ----------------- Xray 配置文件生成 -----------------
+def generate_xray_config(node, protocol):
+    """生成 Xray 配置文件"""
+    config = {
+        "log": {"loglevel": "warning"},
+        "inbounds": [
+            {
+                "port": 1080,
+                "protocol": "socks",
+                "settings": {"auth": "noauth", "udp": True}
+            }
+        ],
+        "outbounds": [
+            {
+                "protocol": protocol,
+                "settings": {},
+                "tag": "proxy"
+            },
+            {
+                "protocol": "freedom",
+                "settings": {},
+                "tag": "direct"
+            }
+        ],
+        "routing": {
+            "rules": [
+                {"type": "field", "outboundTag": "proxy", "domain": ["geosite:google"]}
+            ]
+        }
+    }
+
+    if protocol == "vmess":
+        config["outbounds"][0]["settings"] = {
+            "vnext": [
+                {
+                    "address": node["server"],
+                    "port": int(node["port"]),
+                    "users": [{"id": node["uuid"], "alterId": node.get("alterId", 0)}]
+                }
+            ]
+        }
+        if node.get("network") == "ws":
+            config["outbounds"][0]["streamSettings"] = {
+                "network": "ws",
+                "wsSettings": {"path": node.get("ws-opts", {}).get("path", "/")}
+            }
+
+    elif protocol == "vless":
+        config["outbounds"][0]["settings"] = {
+            "vnext": [
+                {
+                    "address": node["server"],
+                    "port": int(node["port"]),
+                    "users": [{"id": node["uuid"], "encryption": "none"}]
+                }
+            ]
+        }
+        if node.get("network") == "grpc":
+            config["outbounds"][0]["streamSettings"] = {
+                "network": "grpc",
+                "grpcSettings": {"serviceName": node.get("grpc-opts", {}).get("serviceName", "")}
+            }
+
+    elif protocol == "trojan":
+        config["outbounds"][0]["settings"] = {
+            "servers": [
+                {
+                    "address": node["server"],
+                    "port": int(node["port"]),
+                    "password": node["password"]
+                }
+            ]
+        }
+
+    elif protocol == "shadowsocks":
+        config["outbounds"][0]["settings"] = {
+            "servers": [
+                {
+                    "address": node["server"],
+                    "port": int(node["port"]),
+                    "method": node["cipher"],
+                    "password": node["password"]
+                }
+            ]
+        }
+
+    return config
+
 # ----------------- 协议测试函数 -----------------
-def test_ss(node):
-    """测试Shadowsocks协议"""
+def test_with_xray(node, protocol):
+    """使用 Xray 测试代理节点"""
     try:
+        config = generate_xray_config(node, protocol)
+        with NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+            json.dump(config, f, indent=2)
+            config_path = f.name
+
+        # 启动 Xray
+        xray_proc = subprocess.Popen(
+            [XRAY_BIN, "run", "-c", config_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        # 等待 Xray 启动
+        time.sleep(1)
+
+        # 测试连接
         start = time.time()
         cmd = [
-            'curl', '-sS', '--connect-timeout', '10',
-            '--socks5-hostname', f"{node['server']}:{node['port']}",
-            '--proxy-user', f"{node['cipher']}:{node['password']}",
-            '-o', '/dev/null', '-w', '%{http_code}', TEST_URL
+            "curl",
+            "-sS",
+            "--connect-timeout",
+            "10",
+            "--proxy",
+            "socks5h://127.0.0.1:1080",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            TEST_URL
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.stdout.strip() == "204":
-            return (time.time() - start) * 1000
-        return None
-    except Exception as e:
-        log(f"SS测试失败 {node.get('name')}: {str(e)}")
-        return None
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
+        latency = (time.time() - start) * 1000  # 毫秒
 
-def test_vmess(node):
-    """测试VMess协议"""
-    try:
-        start = time.time()
-        cmd = ['nc', '-zvw5', node['server'], str(node['port'])]
-        result = subprocess.run(cmd, capture_output=True)
-        if result.returncode == 0:
-            return (time.time() - start) * 1000
+        # 清理 Xray 进程
+        xray_proc.terminate()
+        try:
+            xray_proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            xray_proc.kill()
+
+        # 删除临时配置文件
+        os.unlink(config_path)
+
+        if result.stdout.strip() == "204":
+            return latency
         return None
     except Exception as e:
-        log(f"VMess测试失败 {node.get('name')}: {str(e)}")
+        log(f"{protocol.upper()}测试失败 {node.get('name')}: {str(e)}")
         return None
 
 def test_hysteria2(node):
-    """测试Hysteria2协议"""
+    """测试 Hysteria2 协议"""
     try:
         config = {
             "server": f"{node['server']}:{node['port']}",
-            "auth_str": node['auth_str'],
-            "tls": {"insecure": node.get('insecure', False)}
+            "auth": node.get("password", ""),
+            "tls": {"insecure": node.get("allowInsecure", False)}
         }
-        
-        with NamedTemporaryFile(mode='w', delete=False) as f:
-            json.dump(config, f)
-            config_file = f.name
-            
-        cmd = [
-            'hysteria', 'client', '--config', config_file,
-            'test', '--duration', '5', TEST_URL
-        ]
+        with NamedTemporaryFile("w", suffix=".yaml", delete=False) as f:
+            yaml.safe_dump(config, f)
+            config_path = f.name
+
+        # 启动 Hysteria2
+        hysteria_proc = subprocess.Popen(
+            [HYSTERIA_BIN, "client", "-c", config_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        # 等待启动
+        time.sleep(1)
+
+        # 测试连接
         start = time.time()
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        os.unlink(config_file)
-        
-        if result.returncode != 0:
-            return None
-            
-        for line in result.stdout.split('\n'):
-            if 'avg_rtt' in line:
-                return float(line.split('=')[1].replace('ms', '').strip())
+        cmd = [
+            "curl",
+            "-sS",
+            "--connect-timeout",
+            "10",
+            "--proxy",
+            "socks5h://127.0.0.1:1080",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            TEST_URL
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
+        latency = (time.time() - start) * 1000
+
+        # 清理进程
+        hysteria_proc.terminate()
+        try:
+            hysteria_proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            hysteria_proc.kill()
+
+        # 删除临时配置文件
+        os.unlink(config_path)
+
+        if result.stdout.strip() == "204":
+            return latency
         return None
     except Exception as e:
         log(f"Hysteria2测试失败 {node.get('name')}: {str(e)}")
         return None
 
-def test_vless(node):
-    """测试VLESS协议"""
-    try:
-        config = {
-            "inbounds": [{
-                "port": 1080,
-                "protocol": "socks",
-                "settings": {"auth": "noauth"}
-            }],
-            "outbounds": [{
-                "protocol": "vless",
-                "settings": {
-                    "vnext": [{
-                        "address": node['server'],
-                        "port": node['port'],
-                        "users": [{"id": node['uuid']}]
-                    }]
-                },
-                "streamSettings": node.get('streamSettings', {})
-            }]
-        }
-        
-        with NamedTemporaryFile(mode='w', delete=False) as f:
-            json.dump(config, f)
-            config_file = f.name
-            
-        xray_proc = subprocess.Popen(
-            ['xray', 'run', '-c', config_file],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE
-        )
-        time.sleep(2)
-        
-        cmd = [
-            'curl', '-sS', '--socks5-hostname', '127.0.0.1:1080',
-            '-o', '/dev/null', '-w', '%{time_total}', TEST_URL
-        ]
-        start = time.time()
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        xray_proc.terminate()
-        os.unlink(config_file)
-        
-        if result.returncode == 0:
-            return float(result.stdout) * 1000
-        return None
-    except Exception as e:
-        log(f"VLESS测试失败 {node.get('name')}: {str(e)}")
-        return None
-
 def test_proxy(node):
     """协议测试分发器"""
     protocol_handlers = {
-        'ss': test_ss,
-        'vmess': test_vmess,
-        'hysteria2': test_hysteria2,
-        'vless': test_vless
+        "ss": lambda n: test_with_xray(n, "shadowsocks"),
+        "vmess": lambda n: test_with_xray(n, "vmess"),
+        "vless": lambda n: test_with_xray(n, "vless"),
+        "trojan": lambda n: test_with_xray(n, "trojan"),
+        "hysteria2": test_hysteria2,
     }
-    
-    proto = node.get('type', '').lower()
+
+    proto = node.get("type", "").lower()
     if proto not in protocol_handlers:
         log(f"⚠️ 不支持的协议类型: {proto}")
         return None
-        
+
+    # 必要字段验证
     required_fields = {
-        'ss': ['server', 'port', 'cipher', 'password'],
-        'vmess': ['server', 'port', 'uuid'],
-        'hysteria2': ['server', 'port', 'auth_str'],
-        'vless': ['server', 'port', 'uuid']
+        "ss": ["server", "port", "cipher", "password"],
+        "vmess": ["server", "port", "uuid"],
+        "vless": ["server", "port", "uuid"],
+        "trojan": ["server", "port", "password"],
+        "hysteria2": ["server", "port", "password"]
     }.get(proto, [])
-    
+
     if any(field not in node for field in required_fields):
         log(f"❌ 缺失必要字段: {node.get('name')}")
         return None
-        
+
     return protocol_handlers[proto](node)
 
 # ----------------- 主逻辑 -----------------
 def main():
     sources = [
-        "https://cdn.jsdelivr.net/gh/0xJins/x.sub@main/trials_providers/TW.yaml",
-        "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@main/trial.yaml"
+        "https://cdn.jsdelivr.net/gh/0xJins/x.sub@refs/heads/main/trials_providers/TW.yaml",
+        "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@refs/heads/main/trial.yaml"
     ]
-    
+
     all_nodes = []
     for url in sources:
         try:
             resp = requests.get(url, timeout=15)
+            resp.raise_for_status()
             data = yaml.safe_load(resp.text)
-            nodes = data.get('proxies', [])
+            nodes = data.get("proxies", [])
             all_nodes.extend(nodes)
             log(f"✅ 成功加载 {len(nodes)} 节点 from {url}")
         except Exception as e:
@@ -187,44 +278,48 @@ def main():
 
     # 并发测试
     valid_results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(test_proxy, node): node for node in unique_nodes}
-        
+
         for future in concurrent.futures.as_completed(futures):
             node = futures[future]
             try:
-                latency = future.result()
-                if latency:
-                    valid_results.append({
-                        'node': node,
-                        'latency': latency
-                    })
-                    log(f"✅ 有效节点: {node['name']} ({latency:.2f}ms)")
+                result = future.result()
+                if result:
+                    valid_results.append({"node": node, "latency": result})
             except Exception as e:
-                log(f"⚠️ 测试异常: {str(e)}")
+                log(f"⚠️ 测试异常 {node.get('name')}: {str(e)}")
 
     # 生成结果文件
     if valid_results:
-        sorted_nodes = sorted(valid_results, key=lambda x: x['latency'])[:50]
+        sorted_nodes = sorted(valid_results, key=lambda x: x["latency"])[:50]
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        with open('nodes.yml', 'w') as f:
+
+        with open("nodes.yml", "w", encoding="utf-8") as f:
             yaml.safe_dump(
-                {'proxies': [n['node'] for n in sorted_nodes]},
+                {"proxies": [n["node"] for n in sorted_nodes]},
                 f,
                 default_flow_style=False,
                 allow_unicode=True
             )
-            
-        with open('speed.txt', 'w') as f:
+
+        with open("speed.txt", "w", encoding="utf-8") as f:
             f.write(f"最后更新: {timestamp}\n")
-            f.write("="*40 + "\n")
+            f.write("节点总数: {}\n\n".format(len(sorted_nodes)))
             for idx, item in enumerate(sorted_nodes, 1):
-                f.write(f"{idx:2d}. {item['node']['name']:30} {item['latency']:.2f}ms\n")
-        
+                node = item["node"]
+                f.write(
+                    f"{idx:2d}. {node['name']} ({node['type'].upper()})\n"
+                    f"    服务器: {node['server']}:{node['port']}\n"
+                    f"    延迟: {item['latency']:.2f}ms\n\n"
+                )
+
         log(f"🎉 生成 {len(sorted_nodes)} 个有效节点")
     else:
         log("❌ 未找到有效节点")
+        with open("speed.txt", "w", encoding="utf-8") as f:
+            f.write(f"最后更新: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("未找到有效节点\n")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
