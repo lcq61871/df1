@@ -1,9 +1,4 @@
-name: Proxy Checker Verified
-
-on:
-  schedule:
-    - cron: '0 */6 * * *'  # 每6小时运行一次
-  workflow_dispatch:
+name: Proxy Checker Final
 
 jobs:
   check:
@@ -13,55 +8,55 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install system dependencies
+    - name: Fix system dependencies
       run: |
+        # 添加 Ubuntu 24.04 (Noble) 专属修复
         sudo apt-get update
+        sudo apt-get install -y \
+          software-properties-common \
+          apt-transport-https
+
+        # 添加必要仓库
+        sudo add-apt-repository -y universe
+        sudo add-apt-repository -y multiverse
+
+    - name: Install network tools
+      run: |
+        # 修正包名
         sudo apt-get install -y \
           curl \
           jq \
           unzip \
-          python3 \
-          python3-pip \
-          netcat-openbsd \
-          openssl
+          python3-full \  # 替代 python3 + python3-pip
+          netcat-openbsd \  # 确认包名正确性
+          openssl \
+          coreutils
 
-    - name: Install Hysteria2 (Verified)
+    - name: Install Python packages
       run: |
-        HYSTERIA_VER=$(curl -s "https://api.github.com/repos/apernet/hysteria/releases/latest" | jq -r '.tag_name')
+        python3 -m ensurepip --upgrade
+        python3 -m pip install pyyaml==6.0.1
+
+    - name: Install Hysteria2
+      run: |
+        # 使用静态编译版本
         sudo curl -fL -o /usr/local/bin/hysteria \
-          "https://github.com/apernet/hysteria/releases/download/$HYSTERIA_VER/hysteria-linux-amd64"
+          "https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64"
         sudo chmod +x /usr/local/bin/hysteria
-        echo "Hysteria2 version: $(hysteria version)"
 
-    - name: Install Xray-core (Verified)
+    - name: Install Xray-core
       run: |
-        XRAY_VER=$(curl -s "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | jq -r '.tag_name')
-        echo "Installing Xray-core $XRAY_VER"
-        
-        sudo curl -fL -o /tmp/xray.zip \
-          "https://github.com/XTLS/Xray-core/releases/download/$XRAY_VER/Xray-linux-64.zip"
-        
-        sudo unzip -o /tmp/xray.zip -d /usr/local/bin/
+        sudo curl -fL -o /usr/local/bin/xray \
+          "https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64"
         sudo chmod +x /usr/local/bin/xray
-        echo "Xray version: $(xray version)"
 
-    - name: Setup Python
-      run: |
-        python3 -m pip install --upgrade pip
-        pip install pyyaml
-
-    - name: Run checker with timestamp
-      run: |
-        # 添加时间戳确保文件变更
-        echo "# Last check: $(date +'%Y-%m-%d %H:%M:%S')" >> nodes.yml
-        python3 sub.py
+    - name: Run checker
+      run: python3 sub.py
 
     - name: Commit results
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "Auto update: $(date +'%Y-%m-%d %H:%M')"
+        commit_message: "Auto Update: $(date +'%Y-%m-%d %H:%M')"
         file_pattern: |
           nodes.yml
           speed.txt
-        skip_fetch: true
-        allow_empty_commit: true
