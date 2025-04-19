@@ -5,6 +5,9 @@ on:
     - cron: '0 */6 * * *'  # 每6小时运行
   workflow_dispatch:
 
+permissions:
+  contents: write  # 允许git-auto-commit提交更改
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -13,8 +16,10 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Setup environment
+      with:
+        fetch-depth: 0  # 需要完整历史记录才能提交更改
+
+    - name: Setup system tools
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -22,28 +27,53 @@ jobs:
           netcat-openbsd \
           python3 \
           python3-pip \
-          jq
-        
-        # 安装Xray-core
+          jq \
+          socat
+
+    - name: Install Xray-core
+      run: |
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
-        
-        pip install pyyaml
-        
+        xray -version
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Python dependencies
+      run: pip install pyyaml
+
     - name: Run enhanced tester
       run: |
         chmod +x sub.py
         python3 sub.py
-        
-    - name: Upload results
-      uses: actions/upload-artifact@v3
+
+    - name: Verify generated files
+      run: |
+        echo "=== Generated Files ==="
+        ls -l output/
+        echo "=== nodes.yml sample ==="
+        head -n 10 output/nodes.yml || echo "No nodes.yml found"
+        echo "=== speed.txt sample ==="
+        head -n 10 output/speed.txt || echo "No speed.txt found"
+
+    - name: Upload results as artifact
+      uses: actions/upload-artifact@v4  # 使用最新v4版本
       with:
-        name: node-results
-        path: output/
-        
-    - name: Commit results
+        name: node-test-results
+        path: |
+          output/nodes.yml
+          output/speed.txt
+          sub.log
+        retention-days: 3
+
+    - name: Commit results to repository
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "自动更新节点测试结果 [skip ci]"
+        commit_message: "Auto-update node test results [skip ci]"
         file_pattern: |
           output/nodes.yml
           output/speed.txt
+        commit_user_name: "GitHub Actions"
+        commit_user_email: "actions@github.com"
+        branch: main
