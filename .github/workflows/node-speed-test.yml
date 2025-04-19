@@ -8,7 +8,7 @@ on:
 jobs:
   verified-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 整个工作流最多运行 30 分钟
+    timeout-minutes: 20  # 整个工作流最多运行 20 分钟
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -17,13 +17,11 @@ jobs:
 
     - name: Setup Ubuntu environment
       run: |
-        # 配置 Ubuntu 包源
         sudo tee /etc/apt/sources.list << EOL
         deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
         deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
         deb http://security.ubuntu.com/ubuntu noble-security main restricted universe multiverse
         EOL
-
         sudo apt-get update
         sudo apt-get install -y \
           software-properties-common \
@@ -56,7 +54,7 @@ jobs:
           fi
         done
         if [ ! -f /usr/local/bin/hysteria ]; then
-          echo "错误：无法下载 Hysteria2，请检查链接。"
+          echo "错误：无法下载 Hysteria2"
           exit 1
         fi
         sudo chmod +x /usr/local/bin/hysteria
@@ -75,10 +73,10 @@ jobs:
           fi
         done
         if [ ! -f /tmp/xray.zip ]; then
-          echo "错误：无法下载 Xray-core，尝试使用官方安装脚本。"
+          echo "错误：无法下载 Xray-core，尝试使用官方安装脚本"
           bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
           if [ ! -f /usr/local/bin/xray ]; then
-            echo "错误：安装脚本无法安装 Xray-core。"
+            echo "错误：安装脚本无法安装 Xray-core"
             exit 1
           fi
         else
@@ -88,14 +86,17 @@ jobs:
         echo "Xray 版本: $(xray version || echo '版本检查失败')"
 
     - name: Run checker with verification
-      timeout-minutes: 20  # 限制 sub.py 运行时间为 20 分钟
+      timeout-minutes: 10  # 限制 sub.py 运行时间为 10 分钟
       run: |
         # 强制生成初始文件
         echo "proxies: []" > nodes.yml
         echo "# Speed test results" > speed.txt
         
         # 运行检查脚本
-        python3 sub.py
+        timeout 10m python3 sub.py || echo "警告：sub.py 运行超时或失败"
+        
+        # 调试：检查卡住的进程
+        ps aux | grep -E 'xray|hysteria|python3' || echo "没有找到运行中的 xray/hysteria/python3 进程"
         
         # 验证结果文件
         yamllint nodes.yml || echo "警告：YAML 格式检查失败"
