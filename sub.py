@@ -7,17 +7,18 @@ import subprocess
 import concurrent.futures
 from datetime import datetime
 from tempfile import NamedTemporaryFile
+import signal
 
 DEBUG = True
-TIMEOUT = 20  # 超时时间 20 秒
+TIMEOUT = 15  # 超时时间 15 秒
 TEST_URLS = [
     "http://cp.cloudflare.com/generate_204",
-    "https://www.google.com/generate_204",
-    "http://detectportal.firefox.com/success.txt"
+    "http://www.qualcomm.com/generate_204",
+    "http://www.apple.com/library/test/success.html"
 ]
 XRAY_BIN = "/usr/local/bin/xray"
 HYSTERIA_BIN = "/usr/local/bin/hysteria"
-MAX_NODES = 50  # 限制测试节点数
+MAX_NODES = 20  # 限制测试节点数
 
 def log(message):
     if DEBUG:
@@ -78,6 +79,7 @@ def test_with_xray(node, protocol):
     proc = None
     config_path = None
     try:
+        log(f"开始测试 {protocol.upper()} 节点: {node.get('name')} ({node['server']}:{node['port']})")
         config = generate_xray_config(node, protocol)
         with NamedTemporaryFile("w", suffix=".json", delete=False) as f:
             json.dump(config, f, indent=2)
@@ -89,12 +91,13 @@ def test_with_xray(node, protocol):
         for test_url in TEST_URLS:
             try:
                 start = time.time()
-                cmd = ["curl", "-sS", "--connect-timeout", "10", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
+                cmd = ["curl", "-sS", "--connect-timeout", "8", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
                 latency = (time.time() - start) * 1000
 
-                log(f"{protocol.upper()} {node.get('name')} (URL={test_url}): 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms")
-                if result.stdout.strip() in ["200", "204", "301"]:
+                stderr = result.stderr.strip() if result.stderr else "无错误输出"
+                log(f"{protocol.upper()} {node.get('name')} (URL={test_url}): 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms, 错误={stderr}")
+                if result.stdout.strip() in ["200", "204", "301", "302", "404"]:  # 临时放宽
                     return latency
             except subprocess.TimeoutExpired:
                 log(f"{protocol.upper()} {node.get('name')} (URL={test_url}): 超时")
@@ -118,6 +121,7 @@ def test_hysteria2(node):
     proc = None
     config_path = None
     try:
+        log(f"开始测试 Hysteria2 节点: {node.get('name')} ({node['server']}:{node['port']})")
         config = {"server": f"{node['server']}:{node['port']}", "auth": node.get("password", ""), "tls": {"insecure": node.get("allowInsecure", False)}}
         with NamedTemporaryFile("w", suffix=".yaml", delete=False) as f:
             yaml.safe_dump(config, f)
@@ -129,12 +133,13 @@ def test_hysteria2(node):
         for test_url in TEST_URLS:
             try:
                 start = time.time()
-                cmd = ["curl", "-sS", "--connect-timeout", "10", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
+                cmd = ["curl", "-sS", "--connect-timeout", "8", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
                 latency = (time.time() - start) * 1000
 
-                log(f"Hysteria2 {node.get('name')} (URL={test_url}): 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms")
-                if result.stdout.strip() in ["200", "204", "301"]:
+                stderr = result.stderr.strip() if result.stderr else "无错误输出"
+                log(f"Hysteria2 {node.get('name')} (URL={test_url}): 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms, 错误={stderr}")
+                if result.stdout.strip() in ["200", "204", "301", "302", "404"]:
                     return latency
             except subprocess.TimeoutExpired:
                 log(f"Hysteria2 {node.get('name')} (URL={test_url}): 超时")
@@ -191,22 +196,43 @@ def test_proxy(node):
 # ----------------- 主逻辑 -----------------
 def main():
     sources = [
-        "https://cdn.jsdelivr.net/gh/lcq61871/NoMoreWalls@refs/heads/master/snippets/nodes_TW.meta.yml",
+        "https://cdn.jsdelivr.net/gh/0xJins/x.sub@refs/heads/main/trials_providers/TW.yaml",
         "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@refs/heads/main/trial.yaml"
     ]
 
     all_nodes = []
     for url in sources:
-        try:
-            resp = requests.get(url, timeout=15)
-            resp.raise_for_status()
-            data = yaml.safe_load(resp.text)
-            nodes = data.get("proxies", [])
-            filtered_nodes = [node for node in nodes if node.get("type", "").lower() != "ssr"]
-            all_nodes.extend(filtered_nodes)
-            log(f"✅ 加载 {len(nodes)} 节点（过滤后 {len(filtered_nodes)}）: {url}")
-        except Exception as e:
-            log(f"❌ 加载失败: {url} {str(e)}")
+        log(f"尝试加载节点源: {url}")
+        for attempt in range(3):
+            try:
+                resp = requests.get(url, timeout=10)
+                resp.raise_for_status()
+                data = yaml.safe_load(resp.text)
+                nodes = data.get("proxies", [])
+                filtered_nodes = [node for node in nodes if node.get("type", "").lower() != "ssr"]
+                all_nodes.extend(filtered_nodes)
+                log(f"✅ 加载 {len(nodes)} 节点（过滤后 {len(filtered_nodes)}）: {url}")
+                # 统计协议分布
+                protocols = {}
+                for node in filtered_nodes:
+                    proto = node.get("type", "unknown").lower()
+                    protocols[proto] = protocols.get(proto, 0) + 1
+                log(f"协议分布: {protocols}")
+                break
+            except Exception as e:
+                log(f"❌ 加载失败 (尝试 {attempt + 1}/3): {url} {str(e)}")
+                if attempt == 2:
+                    log(f"❌ 放弃加载: {url}")
+                time.sleep(2)
+
+    if not all_nodes:
+        log("❌ 未加载到任何节点")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open("nodes.yml", "w", encoding="utf-8") as f:
+            yaml.safe_dump({"proxies": []}, f, default_flow_style=False, allow_unicode=True)
+        with open("speed.txt", "w", encoding="utf-8") as f:
+            f.write(f"最后更新: {timestamp}\n无有效节点\n")
+        return
 
     seen = set()
     unique_nodes = []
