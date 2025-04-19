@@ -1,1 +1,418 @@
-proxies: []
+proxies:
+- alterId: 0
+  cipher: auto
+  name: 公益免费 🇺🇸美国 - Gegeth极迅游
+  network: ws
+  port: 80
+  server: us-west-anycast.lnaspiring.com
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: d0a632e2-2992-4be7-8eb4-6ebe77222cef
+  ws-opts:
+    headers:
+      Host: uspz.edge.233.tw
+    path: /geg/44?ed=2048
+- alterId: 0
+  cipher: auto
+  name: 公益免费 🇯🇵日本 - Gegeth极迅游
+  network: ws
+  port: 80
+  server: ap-northeast-anycast.lnaspiring.com
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: d0a632e2-2992-4be7-8eb4-6ebe77222cef
+  ws-opts:
+    headers:
+      Host: jpli.edge.233.tw
+    path: /geg/45?ed=2048
+- name: 564|🔒 TR-TCP-NA 🇹🇼 TW-188.253.6.21...
+  password: Aimer
+  port: 443
+  server: 188.253.6.210
+  sni: ngepz.ambercc.filegear-sg.me
+  type: trojan
+- name: 564|🔒 TR-GRPC-TLS 🇹🇼 TW-60.249.28....
+  network: grpc
+  password: 67eb147db1c0f8c5
+  port: 443
+  server: 60.249.28.59
+  sni: 007.com
+  type: trojan
+- name: 379|台湾04自动换IP会掉线
+  password: cfa36789-94aa-4c4c-ad06-ab35a8eb9312
+  port: 23234
+  server: tw7.376897.xyz
+  sni: tw7.376897.xyz
+  type: trojan
+  udp: true
+- name: 379|台湾01自动换IP会掉线
+  password: cfa36789-94aa-4c4c-ad06-ab35a8eb9312
+  port: 4532
+  server: 2gzdx21.376897.xyz
+  sni: 2gzdx21.376897.xyz
+  type: trojan
+  udp: true
+- name: 456|台湾 08
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50428
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- name: 379|台湾05自动换IP会掉线
+  password: cfa36789-94aa-4c4c-ad06-ab35a8eb9312
+  port: 232
+  server: tw1.376897.xyz
+  sni: tw1.376897.xyz
+  type: trojan
+  udp: true
+- name: 456|台湾 10
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50430
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- name: 379|台湾03自动换IP会掉线
+  password: cfa36789-94aa-4c4c-ad06-ab35a8eb9312
+  port: 232
+  server: tw4.376897.xyz
+  sni: tw4.376897.xyz
+  type: trojan
+  udp: true
+- name: 379|台湾02自动换IP会掉线
+  password: cfa36789-94aa-4c4c-ad06-ab35a8eb9312
+  port: 232
+  server: tw5.376897.xyz
+  sni: tw5.376897.xyz
+  type: trojan
+  udp: true
+- name: 456|台湾 09
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50429
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- name: 558|37|TW6
+  network: ws
+  password: 02926f9e-153a-42c8-8ecd-8fade7009ad1
+  port: 443
+  server: 166.0.198.68
+  skip-cert-verify: true
+  sni: golinkwuxian.top
+  type: trojan
+- name: 416|🇹🇼6 |  2.0MB/s
+  password: exaxgqkKkd0TAMrCxeonWg==
+  port: 1443
+  server: twmoon1-cdn-route.couldflare-cdn.com
+  skip-cert-verify: false
+  sni: twmoon1-cdn-route.couldflare-cdn.com
+  tls: true
+  type: http
+  username: mrwdfNTD8M79LCukCieldrqZWqs=
+- name: '456|台湾 03 #1'
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50423
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|【节点优先级】按量>[不限量]>[免费]>[公共订阅]|共享 - 大白
+  network: ws
+  port: 8880
+  server: s3.cn-db.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-63-229-245.s3.cn-db.top
+    path: /dabai.in172.67.100.74
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|【注册免费领1TB流量】前往-注册|共享 - 大白
+  network: ws
+  port: 2052
+  server: s2.db-link01.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-181-176-208.s2.db-link01.top
+    path: /dabai.in104.24.36.243
+- name: 456|台湾 07
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50427
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- name: 456|台湾 05
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50425
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- name: 456|台湾 06
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50426
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- name: '456|台湾 04 #1'
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50424
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- name: 558|5|🇹🇼  [ v2 ] 台湾混合 · 02 · 线路A
+  password: 5f1613a4-eefa-4d4d-b734-a86ee3d7327a
+  port: 50045
+  server: gnpid1111.ndycom.com
+  skip-cert-verify: true
+  sni: twlite02.6kk.org
+  type: trojan
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|最低35%-aff招募进行中|共享 - 大白
+  network: ws
+  port: 8880
+  server: s1.db-link02.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-233-79-98.s1.db-link02.top
+    path: /dabai.in172.64.29.250
+- name: 558|5|🇹🇼  [ v2 ] 台湾混合 · 01 · 线路A
+  password: 5f1613a4-eefa-4d4d-b734-a86ee3d7327a
+  port: 50044
+  server: gnpid1111.ndycom.com
+  skip-cert-verify: true
+  sni: twlite01.6kk.org
+  type: trojan
+- name: 440|Taiwan Pro 1
+  password: '!!str 3791397255878287360'
+  port: 443
+  server: touching-ape.terrier756.homes
+  skip-cert-verify: true
+  type: trojan
+- alterId: 0
+  cipher: auto
+  http-opts:
+    headers:
+      Host:
+      - tw2.sdklkd.org
+    method: GET
+    path:
+    - /
+  name: 414,542|🇹🇼TW-118.167.3.110-8572
+  network: http
+  port: 1443
+  server: tw2.sdklkd.org
+  servername: tw2.sdklkd.org
+  skip-cert-verify: false
+  tls: true
+  type: vmess
+  uuid: fa98714c-1d2b-3b60-81e0-f7151110e801
+- name: '456|台湾 02 #1'
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50422
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- name: 329|🇹🇼|台湾-进阶 02
+  password: 44123e4a-3480-4392-978c-b4eb1b3095d7
+  port: 9300
+  server: R2.tube-cat.com
+  skip-cert-verify: true
+  sni: tw.catxstar.com
+  type: trojan
+  udp: true
+- name: 171|[trojan]台湾1-443
+  network: ws
+  password: b392bced-2765-4978-9e4c-cab4cde3b27b
+  port: 443
+  server: 222.golinkwuxian.top
+  skip-cert-verify: true
+  sni: golinkwuxian.top
+  type: trojan
+  udp: true
+  ws-opts:
+    headers:
+      Host: 222.golinkwuxian.top
+    path: /apple
+- name: 329|🇹🇼|台湾-进阶 01
+  password: 44123e4a-3480-4392-978c-b4eb1b3095d7
+  port: 9300
+  server: R1.tube-cat.com
+  skip-cert-verify: true
+  sni: tw.catxstar.com
+  type: trojan
+  udp: true
+- name: 661|Trojan-台湾2 | 低倍率
+  password: 593c3d63-04c7-4bbb-a03f-114eba08636c
+  port: 43096
+  server: a124b841b14bf53c537198c81156b5fb.lh.gtm.node-is.green
+  skip-cert-verify: true
+  sni: tctw1.bilibili.com
+  type: trojan
+  udp: true
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|【付费用户】油管秒开4K/8K|更多地区接入|GPT+流媒体|共享 - 大白
+  network: ws
+  port: 2095
+  server: s5.db-link01.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-214-14-166.s5.db-link01.top
+    path: /dabai.in104.20.104.138
+- name: '456|台湾 01 #1'
+  password: eb2ec34c-1d94-4ca5-bec0-356f75f9f4fa
+  port: 50421
+  server: mpkrykuslqfijsw-tw.fliggynode.com
+  skip-cert-verify: true
+  type: trojan
+  udp: true
+- alterId: 0
+  cipher: auto
+  name: 🇺🇸 美国new01优选（1倍率） - 快狗云
+  network: ws
+  port: 8080
+  server: go.daluquan.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: e9a0bb07-661e-4c55-b1a2-8cccfbb960e5
+  ws-opts:
+    headers:
+      Host: us-new01.daluquan.top
+    path: /
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|【db01.in】<<前往官网|GPT+流媒体|共享 - 大白
+  network: ws
+  port: 8080
+  server: s4.db-link02.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-152-141-43.s4.db-link02.top
+    path: /dabai.in172.67.21.142
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|【使用前请更新订阅】每日会变更节点密码|GPT+流媒体|共享 - 大白
+  network: ws
+  port: 2095
+  server: s3.db-link01.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-118-96-58.s3.db-link01.top
+    path: /dabai.in104.24.95.184
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|【dabai.in】<<前往官网|GPT+流媒体|共享 - 大白
+  network: ws
+  port: 80
+  server: s4.cn-db.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-22-206-146.s4.cn-db.top
+    path: /dabai.in172.67.95.31
+- client-fingerprint: chrome
+  name: 1,19,75,76,179,183,417,418,550,554,555|台湾2|@ripaojiedian
+  network: tcp
+  password: d5826953-96a0-4e2e-ad04-638668222256
+  port: 27201
+  server: sla.cn.964e995b760.gogodns.xin
+  skip-cert-verify: false
+  sni: q08m.vgraxiw73s.hasyaf.cn
+  type: trojan
+- alterId: 0
+  cipher: auto
+  name: 177|🌴台湾/丈化/🚀CDN加速
+  network: ws
+  port: 80
+  server: bvdhgfhfs.fask511.cfd
+  type: vmess
+  udp: true
+  uuid: 50597737-862b-43c4-a4ba-5c808171d6d1
+  ws-headers:
+    Host: www.douyin.com
+  ws-opts:
+    headers:
+      Host: www.douyin.com
+    path: /market/atwjjz?ed=512
+  ws-path: /market/atwjjz?ed=512
+- name: '663|Trojan-台湾2 | 低倍率 #2'
+  password: 8d4fa037-3324-485e-a3fc-2862210ee4f7
+  port: 41703
+  server: ca62c553c6751119aaaa6e930947a094.lh.gtm.node-is.green
+  skip-cert-verify: true
+  sni: tctw1.bilibili.com
+  type: trojan
+  udp: true
+- name: '662|Trojan-台湾2 | 低倍率 #1'
+  password: b64ec383-e598-465a-9e59-70e9b0d87f66
+  port: 48564
+  server: af2508bc2f5093ee2b47e098c677b867.lh.gtm.node-is.green
+  skip-cert-verify: true
+  sni: tctw1.bilibili.com
+  type: trojan
+  udp: true
+- name: '664|Trojan-台湾2 | 低倍率 #3'
+  password: 07e55e4a-ef94-4e81-addc-b62532cb503a
+  port: 41028
+  server: 15ca18f0c33fb09b7550470e4081cf52.lh.gtm.node-is.green
+  skip-cert-verify: true
+  sni: tctw1.bilibili.com
+  type: trojan
+  udp: true
+- client-fingerprint: chrome
+  name: 464|🇹🇼 台湾_明懂砖线_菲米尼的星穹
+  password: 3b2dc38d-7d53-4f74-9965-05d2e684fca3
+  port: 27202
+  server: sla.cn.964e995b760.gogodns.xin
+  skip-cert-verify: false
+  sni: q08m.vgraxiw73s.hasyaf.cn
+  type: trojan
