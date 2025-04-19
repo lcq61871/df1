@@ -16,10 +16,10 @@ proxies:
     path: ef8c954e-014f-4b36-8273-9b5086afab34-vm
 - alterId: 0
   cipher: auto
-  name: vmess | 🇺🇸美国3
+  name: vmess | 🇺🇸美国0
   network: ws
   port: 8080
-  server: 104.19.38.48
+  server: 104.26.9.22
   servername: dual-nothing-prep-exit.trycloudflare.com
   skip-cert-verify: true
   tls: false
@@ -31,10 +31,10 @@ proxies:
     path: ef8c954e-014f-4b36-8273-9b5086afab34-vm
 - alterId: 0
   cipher: auto
-  name: vmess | 🇺🇸美国0
+  name: vmess | 🇺🇸美国3
   network: ws
   port: 8080
-  server: 104.26.9.22
+  server: 104.19.38.48
   servername: dual-nothing-prep-exit.trycloudflare.com
   skip-cert-verify: true
   tls: false
@@ -91,6 +91,81 @@ proxies:
     path: /geg/44?ed=2048
 - alterId: 0
   cipher: auto
+  name: 🇺🇸 美国new01优选（1倍率） - 快狗云
+  network: ws
+  port: 8080
+  server: go.daluquan.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: e9a0bb07-661e-4c55-b1a2-8cccfbb960e5
+  ws-opts:
+    headers:
+      Host: us-new01.daluquan.top
+    path: /
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|【使用前请更新订阅】每日会变更节点密码|GPT+流媒体|共享 - 大白
+  network: ws
+  port: 2095
+  server: s3.db-link01.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-118-96-58.s3.db-link01.top
+    path: /dabai.in104.24.95.184
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|【付费用户】油管秒开4K/8K|更多地区接入|GPT+流媒体|共享 - 大白
+  network: ws
+  port: 2095
+  server: s5.db-link01.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-214-14-166.s5.db-link01.top
+    path: /dabai.in104.20.104.138
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|最低35%-aff招募进行中|共享 - 大白
+  network: ws
+  port: 8880
+  server: s1.db-link02.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-233-79-98.s1.db-link02.top
+    path: /dabai.in172.64.29.250
+- alterId: 0
+  cipher: auto
+  name: 🇺🇲 美国|【节点优先级】按量>[不限量]>[免费]>[公共订阅]|共享 - 大白
+  network: ws
+  port: 8880
+  server: s3.cn-db.top
+  skip-cert-verify: true
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
+  ws-opts:
+    headers:
+      Host: 100-63-229-245.s3.cn-db.top
+    path: /dabai.in172.67.100.74
+- alterId: 0
+  cipher: auto
   name: 🇺🇲 美国|【dabai.in】<<前往官网|GPT+流媒体|共享 - 大白
   network: ws
   port: 80
@@ -134,78 +209,3 @@ proxies:
     headers:
       Host: 100-152-141-43.s4.db-link02.top
     path: /dabai.in172.67.21.142
-- alterId: 0
-  cipher: auto
-  name: 🇺🇲 美国|最低35%-aff招募进行中|共享 - 大白
-  network: ws
-  port: 8880
-  server: s1.db-link02.top
-  skip-cert-verify: true
-  tls: false
-  type: vmess
-  udp: true
-  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
-  ws-opts:
-    headers:
-      Host: 100-233-79-98.s1.db-link02.top
-    path: /dabai.in172.64.29.250
-- alterId: 0
-  cipher: auto
-  name: 🇺🇲 美国|【节点优先级】按量>[不限量]>[免费]>[公共订阅]|共享 - 大白
-  network: ws
-  port: 8880
-  server: s3.cn-db.top
-  skip-cert-verify: true
-  tls: false
-  type: vmess
-  udp: true
-  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
-  ws-opts:
-    headers:
-      Host: 100-63-229-245.s3.cn-db.top
-    path: /dabai.in172.67.100.74
-- alterId: 0
-  cipher: auto
-  name: 🇺🇲 美国|【使用前请更新订阅】每日会变更节点密码|GPT+流媒体|共享 - 大白
-  network: ws
-  port: 2095
-  server: s3.db-link01.top
-  skip-cert-verify: true
-  tls: false
-  type: vmess
-  udp: true
-  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
-  ws-opts:
-    headers:
-      Host: 100-118-96-58.s3.db-link01.top
-    path: /dabai.in104.24.95.184
-- alterId: 0
-  cipher: auto
-  name: 🇺🇸 美国new01优选（1倍率） - 快狗云
-  network: ws
-  port: 8080
-  server: go.daluquan.top
-  skip-cert-verify: true
-  tls: false
-  type: vmess
-  udp: true
-  uuid: e9a0bb07-661e-4c55-b1a2-8cccfbb960e5
-  ws-opts:
-    headers:
-      Host: us-new01.daluquan.top
-    path: /
-- alterId: 0
-  cipher: auto
-  name: 🇺🇲 美国|【付费用户】油管秒开4K/8K|更多地区接入|GPT+流媒体|共享 - 大白
-  network: ws
-  port: 2095
-  server: s5.db-link01.top
-  skip-cert-verify: true
-  tls: false
-  type: vmess
-  udp: true
-  uuid: 8b6a13a3-8200-391a-ad07-3b8198a87448
-  ws-opts:
-    headers:
-      Host: 100-214-14-166.s5.db-link01.top
-    path: /dabai.in104.20.104.138
