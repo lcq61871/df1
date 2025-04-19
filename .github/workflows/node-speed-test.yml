@@ -1,45 +1,37 @@
-name: Enhanced Node Checker
+name: Advanced Node Checker
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # 每3小时运行一次
+    - cron: '0 */3 * * *'
   workflow_dispatch:
 
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+    - uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
         python-version: '3.10'
     
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install requests pyyaml
+        sudo apt-get install -y libsodium-dev
+        pip install requests pyyaml shadowsocks v2ray-core
     
-    - name: Run enhanced checker
+    - name: Run checker
       run: python sub.py
       env:
-        DEBUG: 'True'  # 启用调试模式
+        DEBUG: 'True'
+        TIMEOUT: '15'
     
-    - name: Commit changes
-      if: always()
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        git add nodes.yml speed.txt
-        git diff-index --quiet HEAD || git commit -m "Auto update: $(date +'%Y-%m-%d %H:%M')"
-    
-    - name: Push changes
-      uses: ad-m/github-push-action@master
+    - name: Upload results
+      uses: actions/upload-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: main
+        name: nodes-result
+        path: |
+          nodes.yml
+          speed.txt
