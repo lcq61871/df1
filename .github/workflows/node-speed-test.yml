@@ -45,10 +45,15 @@ jobs:
 
     - name: Install Hysteria2
       run: |
-        sudo curl -fL -o /usr/local/bin/hysteria \
-          "https://github.com/apernet/hysteria/releases/download/v2.0.4/hysteria-linux-amd64"
+        HYSTERIA_VERSION="v2.6.1"  # 请确认最新版本，访问 https://github.com/apernet/hysteria/releases
+        HYSTERIA_URL="https://github.com/apernet/hysteria/releases/download/app%2Fv2.6.1/hysteria-linux-amd64"
+        echo "Downloading Hysteria2 from ${HYSTERIA_URL}"
+        if ! sudo curl -fL -o /usr/local/bin/hysteria "${HYSTERIA_URL}"; then
+          echo "Error: Failed to download Hysteria2. Please check the version and URL."
+          exit 1
+        fi
         sudo chmod +x /usr/local/bin/hysteria
-        echo "Hysteria2 version: $(hysteria version)"
+        echo "Hysteria2 version: $(hysteria version || echo 'Version check failed')"
 
     - name: Install Xray-core
       run: |
