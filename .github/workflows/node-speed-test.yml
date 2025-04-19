@@ -32,7 +32,7 @@ jobs:
           requests==2.31.0 \
           pyyaml==6.0.1 \
           shadowsocks==2.8.2 \
-          https://github.com/2dust/v2ray-core/releases/download/v4.45.2/v2ray-core-4.45.2-py3-none-any.whl
+          vmess-python==0.3.0  # 使用替代的VMess库
 
     - name: Run node checker
       run: python sub.py
