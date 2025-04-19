@@ -2,13 +2,13 @@ name: Node Validator
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 每6小时运行
+    - cron: '0 */3 * * *'  # 每6小时运行
   workflow_dispatch:
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
