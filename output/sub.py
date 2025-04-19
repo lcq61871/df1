@@ -3,69 +3,39 @@ import yaml
 import time
 import subprocess
 import concurrent.futures
-import traceback
+import socket
 from urllib.parse import urlparse
 
 DEBUG = True
-TIMEOUT = 15  # 总超时时间(秒)
+TIMEOUT = 20  # 增加超时时间
 TEST_URL = "https://www.gstatic.com/generate_204"
+SPEED_TEST_URL = "https://speed.cloudflare.com/__down?bytes=1000000"  # 1MB测试文件
+MAX_WORKERS = 20
+TOP_NODES = 50
 
 def log(message):
-    """增强的日志函数，同时打印到控制台和日志文件"""
+    """增强日志功能"""
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
     log_msg = f"[{timestamp}] {message}"
-    if DEBUG:
-        print(log_msg)
-    
-    # 确保日志目录存在
-    log_dir = "logs"
-    os.makedirs(log_dir, exist_ok=True)
-    
-    # 写入日志文件
-    try:
-        with open(os.path.join(log_dir, "sub.log"), "a", encoding='utf-8') as f:
-            f.write(log_msg + "\n")
-    except Exception as e:
-        print(f"!!! 无法写入日志文件: {str(e)}")
+    print(log_msg)
+    with open("sub.log", "a", encoding='utf-8') as f:
+        f.write(log_msg + "\n")
 
-def test_ss(node):
-    """测试Shadowsocks节点"""
+def is_port_open(server, port, timeout=5):
+    """检查端口是否真正开放"""
     try:
-        cmd = [
-            'curl', '-sS', 
-            '--connect-timeout', '10',
-            '--max-time', '15',
-            '--socks5-hostname', f"{node['server']}:{node['port']}",
-            '--proxy-user', f"{node['cipher']}:{node['password']}",
-            '-o', '/dev/null',
-            '-w', '%{http_code} %{time_total}',
-            TEST_URL
-        ]
-        result = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=TIMEOUT
-        )
-        
-        if result.returncode == 0 and '204' in result.stdout:
-            return float(result.stdout.split()[1]) * 1000  # 秒转毫秒
-        log(f"SS测试失败 {node.get('name', '未知节点')}: {result.stderr[:100]}")
-    except subprocess.TimeoutExpired:
-        log(f"SS测试超时 {node.get('name', '未知节点')}")
+        with socket.create_connection((server, port), timeout=timeout):
+            return True
+    except (socket.timeout, ConnectionRefusedError, OSError):
+        return False
     except Exception as e:
-        log(f"SS异常 {node.get('name', '未知节点')}: {str(e)}")
-    return None
+        log(f"端口检查异常 {server}:{port} - {str(e)}")
+        return False
 
-def test_tcp(node):
-    """通用TCP端口测试"""
+def test_real_connection(cmd, node_name):
+    """测试真实数据传输"""
     try:
         start_time = time.time()
-        cmd = [
-            'nc', '-zv', '-w', '10',
-            node['server'], str(node['port'])
-        ]
         result = subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
@@ -75,177 +45,261 @@ def test_tcp(node):
         )
         
         if result.returncode == 0:
-            return (time.time() - start_time) * 1000
-        log(f"TCP测试失败 {node.get('name', '未知节点')}: {result.stderr[:100]}")
+            speed = len(result.stdout) / (time.time() - start_time)  # bytes/sec
+            return speed
+        log(f"数据传输测试失败 {node_name}: {result.stderr[:100]}")
     except subprocess.TimeoutExpired:
-        log(f"TCP测试超时 {node.get('name', '未知节点')}")
+        log(f"数据传输超时 {node_name}")
     except Exception as e:
-        log(f"TCP异常 {node.get('name', '未知节点')}: {str(e)}")
-    return None
+        log(f"数据传输异常 {node_name}: {str(e)}")
+    return 0
+
+def test_ss(node):
+    """增强版SS测试"""
+    try:
+        # 1. 先检查端口可用性
+        if not is_port_open(node['server'], node['port']):
+            log(f"⛔ SS端口不可达 {node['name']}")
+            return None, None
+        
+        # 2. 测试基础连接
+        curl_cmd = [
+            'curl', '-sS',
+            '--connect-timeout', '10',
+            '--max-time', '15',
+            '--socks5-hostname', f"{node['server']}:{node['port']}",
+            '--proxy-user', f"{node['cipher']}:{node['password']}",
+            '-o', '/dev/null',
+            '-w', '%{http_code} %{time_total}',
+            TEST_URL
+        ]
+        
+        result = subprocess.run(
+            curl_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=TIMEOUT
+        )
+        
+        if result.returncode != 0 or '204' not in result.stdout:
+            log(f"SS连接测试失败 {node['name']}: {result.stderr[:100]}")
+            return None, None
+        
+        latency = float(result.stdout.split()[1]) * 1000
+        
+        # 3. 测试真实传输速度
+        speed_cmd = [
+            'curl', '-sS',
+            '--connect-timeout', '10',
+            '--max-time', '20',
+            '--socks5-hostname', f"{node['server']}:{node['port']}",
+            '--proxy-user', f"{node['cipher']}:{node['password']}",
+            SPEED_TEST_URL
+        ]
+        
+        speed = test_real_connection(speed_cmd, node['name'])
+        
+        if speed <= 0:
+            return None, None
+            
+        log(f"✅ SS验证通过 {node['name']} | 延迟: {latency:.2f}ms | 速度: {speed/1024:.2f} KB/s")
+        return latency, speed
+        
+    except Exception as e:
+        log(f"SS测试异常 {node['name']}: {str(e)}")
+        return None, None
+
+def test_vmess(node):
+    """VMess真实连接测试"""
+    try:
+        # 需要xray-core进行真实协议测试
+        config = {
+            "inbounds": [{"port": 1080, "protocol": "socks", "listen": "127.0.0.1"}],
+            "outbounds": [{
+                "protocol": "vmess",
+                "settings": {"vnext": [{
+                    "address": node['server'],
+                    "port": node['port'],
+                    "users": [{"id": node['uuid']}]
+                }]},
+                "streamSettings": node.get('streamSettings', {})
+            }]
+        }
+        
+        with open("temp_config.json", "w") as f:
+            json.dump(config, f)
+            
+        xray_proc = subprocess.Popen(['xray', 'run', '-c', 'temp_config.json'], 
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        time.sleep(2)  # 等待xray启动
+        
+        try:
+            # 测试基础连接
+            test_cmd = [
+                'curl', '-sS',
+                '--connect-timeout', '10',
+                '--max-time', '15',
+                '--socks5-hostname', '127.0.0.1:1080',
+                '-o', '/dev/null',
+                '-w', '%{http_code} %{time_total}',
+                TEST_URL
+            ]
+            
+            result = subprocess.run(test_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if result.returncode != 0 or '204' not in result.stdout:
+                return None, None
+                
+            latency = float(result.stdout.split()[1]) * 1000
+            
+            # 测试下载速度
+            speed_cmd = [
+                'curl', '-sS',
+                '--connect-timeout', '10',
+                '--max-time', '20',
+                '--socks5-hostname', '127.0.0.1:1080',
+                SPEED_TEST_URL
+            ]
+            
+            speed = test_real_connection(speed_cmd, node['name'])
+            if speed <= 0:
+                return None, None
+                
+            log(f"✅ VMess验证通过 {node['name']} | 延迟: {latency:.2f}ms | 速度: {speed/1024:.2f} KB/s")
+            return latency, speed
+            
+        finally:
+            xray_proc.terminate()
+            os.remove("temp_config.json")
+            
+    except Exception as e:
+        log(f"VMess测试异常 {node['name']}: {str(e)}")
+        return None, None
 
 def test_node(node):
-    """节点测试分发"""
+    """增强版节点测试"""
     protocol_testers = {
         'ss': test_ss,
-        'vmess': test_tcp,
-        'trojan': test_tcp,
-        'http': test_tcp
+        'vmess': test_vmess,
+        'trojan': lambda n: test_vmess(n)  # 类似VMess测试方式
     }
     
-    if node.get('type') not in protocol_testers:
-        log(f"⚠️ 跳过不支持协议: {node.get('type', '未知类型')}")
+    if node['type'] not in protocol_testers:
+        log(f"⚠️ 跳过不支持协议: {node['type']}")
         return None
         
-    required_fields = ['server', 'port', 'name']
-    if not all(k in node for k in required_fields):
-        missing = [k for k in required_fields if k not in node]
-        log(f"⚠️ 节点字段缺失({missing}): {node.get('name', '未知节点')}")
+    required_fields = {
+        'ss': ['server', 'port', 'name', 'cipher', 'password'],
+        'vmess': ['server', 'port', 'name', 'uuid'],
+        'trojan': ['server', 'port', 'name', 'password']
+    }
+    
+    missing = [f for f in required_fields.get(node['type'], []) if f not in node]
+    if missing:
+        log(f"⚠️ 节点字段缺失 {node.get('name')}: {missing}")
         return None
         
     try:
-        latency = protocol_testers[node['type']](node)
-        if latency is not None:
-            log(f"✅ {node['name']} 有效 ({latency:.2f}ms)")
-            return {'node': node, 'latency': latency}
+        latency, speed = protocol_testers[node['type']](node)
+        if latency and speed:
+            return {
+                'node': node,
+                'latency': latency,
+                'speed': speed,  # bytes/sec
+                'score': calculate_score(latency, speed)
+            }
+        return None
     except Exception as e:
-        log(f"测试异常 {node.get('name', '未知节点')}: {str(e)}")
-        log(traceback.format_exc())
-    return None
+        log(f"测试异常 {node.get('name')}: {str(e)}")
+        return None
 
-def ensure_output_directory():
-    """确保输出目录存在并可写"""
-    output_dir = "output"
-    try:
-        os.makedirs(output_dir, exist_ok=True)
-        # 测试写入权限
-        test_file = os.path.join(output_dir, '.permission_test')
-        with open(test_file, 'w') as f:
-            f.write('test')
-        os.remove(test_file)
-        return output_dir
-    except Exception as e:
-        log(f"❌ 输出目录不可写: {str(e)}")
-        raise
+def calculate_score(latency, speed):
+    """综合评分算法 (延迟占比30%，速度占比70%)"""
+    normalized_latency = max(0, 1 - latency / 1000)  # 假设1秒为最大可接受延迟
+    normalized_speed = min(1, speed / (1024 * 1024))  # 1MB/s为满分
+    return 0.3 * normalized_latency + 0.7 * normalized_speed
 
-def load_nodes(sources):
-    """加载节点源"""
+def main():
+    log("=== 开始增强版节点测试 ===")
+    
+    # 加载节点源
+    sources = [
+        "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes_TW.meta.yml",
+        "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@main/trial.yaml"
+    ]
+    
     all_nodes = []
     for url in sources:
         try:
-            log(f"正在加载节点源: {url}")
             result = subprocess.run(
-                ['curl', '-sSL', url],
+                ['curl', '-sSL', '--retry', '3', url],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=30,
-                check=True
+                text=True,
+                timeout=30
             )
             data = yaml.safe_load(result.stdout)
-            if not data:
-                raise ValueError("空YAML数据")
-                
-            valid_nodes = [n for n in data.get('proxies', []) if isinstance(n, dict) and 'type' in n]
-            all_nodes.extend(valid_nodes)
-            log(f"📥 加载 {len(valid_nodes)} 节点 from {url}")
+            all_nodes.extend([n for n in data.get('proxies', []) if isinstance(n, dict)])
+            log(f"📥 从 {url} 加载 {len(data.get('proxies', []))} 节点")
         except Exception as e:
             log(f"❌ 加载失败 {url}: {str(e)}")
-            if hasattr(e, 'stderr') and e.stderr:
-                log(f"错误详情: {e.stderr.decode()[:200]}")
-    return all_nodes
 
-def write_results(output_dir, results):
-    """写入结果文件"""
-    # 确保结果按延迟排序
-    sorted_nodes = sorted(results, key=lambda x: x['latency'])[:50]
+    # 节点去重
+    seen = set()
+    unique_nodes = []
+    for node in all_nodes:
+        key = f"{node.get('type')}_{node.get('server')}_{node.get('port')}"
+        if key not in seen and node.get('type') in ['ss', 'vmess', 'trojan']:
+            seen.add(key)
+            unique_nodes.append(node)
+    log(f"🔍 去重后待测节点: {len(unique_nodes)}")
+
+    # 并发测试
+    valid_nodes = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = {executor.submit(test_node, n): n for n in unique_nodes}
+        
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                result = future.result()
+                if result:
+                    valid_nodes.append(result)
+            except Exception as e:
+                log(f"并发测试异常: {str(e)}")
+
+    # 按综合评分排序
+    valid_nodes.sort(key=lambda x: -x['score'])
+    best_nodes = valid_nodes[:TOP_NODES]
     
-    # 写入YAML文件
-    yaml_file = os.path.join(output_dir, 'nodes.yml')
-    try:
-        with open(yaml_file, 'w', encoding='utf-8') as f:
-            yaml.safe_dump(
-                {'proxies': [n['node'] for n in sorted_nodes]},
-                f,
-                default_flow_style=False,
-                allow_unicode=True,
-                sort_keys=False
+    # 生成结果文件
+    os.makedirs("output", exist_ok=True)
+    
+    with open("output/nodes.yml", "w", encoding='utf-8') as f:
+        yaml.safe_dump(
+            {"proxies": [n['node'] for n in best_nodes]},
+            f,
+            default_flow_style=False,
+            allow_unicode=True
+        )
+    
+    with open("output/speed.txt", "w", encoding='utf-8') as f:
+        f.write("排名 | 节点名称 | 延迟(ms) | 速度(KB/s) | 综合评分\n")
+        f.write("-"*80 + "\n")
+        for idx, node in enumerate(best_nodes, 1):
+            info = node['node']
+            f.write(
+                f"{idx:2d}. {info['name']} | "
+                f"{node['latency']:7.2f} | "
+                f"{node['speed']/1024:9.2f} | "
+                f"{node['score']:.4f}\n"
             )
-        log(f"✅ 节点文件已写入: {yaml_file} ({os.path.getsize(yaml_file)} 字节)")
-    except Exception as e:
-        log(f"❌ 写入nodes.yml失败: {str(e)}")
-        raise
     
-    # 写入速度测试文件
-    speed_file = os.path.join(output_dir, 'speed.txt')
-    try:
-        with open(speed_file, 'w', encoding='utf-8') as f:
-            f.write("排名 | 节点名称 | 延迟(ms)\n")
-            f.write("-"*40 + "\n")
-            for idx, item in enumerate(sorted_nodes, 1):
-                f.write(f"{idx:2d}. {item['node']['name']} | {item['latency']:.2f}\n")
-            f.flush()  # 确保立即写入
-            os.fsync(f.fileno())  # 强制同步到磁盘
-        
-        log(f"✅ 速度文件已写入: {speed_file} ({os.path.getsize(speed_file)} 字节)")
-        # 验证文件内容
-        with open(speed_file, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            log(f"文件验证: 共 {len(lines)} 行，示例: {lines[:3] if lines else '空文件'}")
-    except Exception as e:
-        log(f"❌ 写入speed.txt失败: {str(e)}")
-        raise
-
-def main():
-    log("=== 开始节点测试 ===")
-    log(f"当前工作目录: {os.getcwd()}")
-    log(f"Python版本: {sys.version}")
-    
-    try:
-        # 加载节点源
-        sources = [
-            "https://cdn.jsdelivr.net/gh/lcq61871/NoMoreWalls@refs/heads/master/snippets/nodes_TW.meta.yml",
-            "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@main/trial.yaml"
-        ]
-        all_nodes = load_nodes(sources)
-        
-        # 节点去重
-        seen = set()
-        unique_nodes = []
-        for node in all_nodes:
-            key = f"{node.get('type')}_{node.get('server')}_{node.get('port')}"
-            if key not in seen:
-                seen.add(key)
-                unique_nodes.append(node)
-        log(f"🔍 去重后节点数: {len(unique_nodes)}")
-        
-        # 并发测试
-        valid_results = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-            futures = {executor.submit(test_node, n): n for n in unique_nodes}
-            
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    result = future.result()
-                    if result:
-                        valid_results.append(result)
-                except Exception as e:
-                    log(f"⚠️ 并发任务异常: {str(e)}")
-        
-        # 输出结果
-        output_dir = ensure_output_directory()
-        if valid_results:
-            write_results(output_dir, valid_results)
-            log(f"🎉 完成! 共 {len(valid_results)} 个有效节点")
-        else:
-            log("❌ 未找到有效节点")
-            # 创建空文件确保GitHub Actions能提交
-            open(os.path.join(output_dir, 'speed.txt'), 'w').close()
-            open(os.path.join(output_dir, 'nodes.yml'), 'w').close()
-            
-    except Exception as e:
-        log(f"!!! 主程序异常: {str(e)}")
-        log(traceback.format_exc())
-        sys.exit(1)
+    log(f"🎉 测试完成! 有效节点: {len(valid_nodes)}/{len(unique_nodes)}")
+    log(f"🏆 最佳节点已保存到 output/ 目录")
 
 if __name__ == '__main__':
-    import sys
-    main()
+    try:
+        main()
+    except Exception as e:
+        log(f"!!! 主程序异常: {str(e)}")
+        raise
