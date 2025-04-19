@@ -45,8 +45,8 @@ jobs:
 
     - name: Install Hysteria2
       run: |
-        HYSTERIA_VERSION="v2.6.1"  # 请确认最新版本，访问 https://github.com/apernet/hysteria/releases
-        HYSTERIA_URL="https://github.com/apernet/hysteria/releases/download/app%2Fv2.6.1/hysteria-linux-amd64"
+        HYSTERIA_VERSION="v2.6.1"  # 更新为最新版本
+        HYSTERIA_URL="https://github.com/apernet/hysteria/releases/download/app%2Fv${HYSTERIA_VERSION}/hysteria-linux-amd64"
         echo "正在下载 Hysteria2: ${HYSTERIA_URL}"
         if ! sudo curl -fL -o /usr/local/bin/hysteria "${HYSTERIA_URL}"; then
           echo "错误：无法下载 Hysteria2，请检查版本和链接。"
@@ -57,10 +57,9 @@ jobs:
 
     - name: Install Xray-core
       run: |
-        XRAY_VERSION="v25.3.6"  # 已更新为最新版本
+        XRAY_VERSION="v25.3.6"  # 最新版本
         XRAY_URL="https://github.com/XTLS/Xray-core/releases/download/${XRAY_VERSION}/Xray-linux-64.zip"
         echo "正在下载 Xray-core: ${XRAY_URL}"
-        # 尝试下载，最多重试3次
         for i in {1..3}; do
           if sudo curl -fL -o /tmp/xray.zip "${XRAY_URL}"; then
             break
@@ -85,7 +84,7 @@ jobs:
     - name: Run checker with verification
       run: |
         # 强制生成初始文件
-        echo "proxies:" > nodes.yml
+        echo "proxies: []" > nodes.yml
         echo "# Speed test results" > speed.txt
         
         # 运行检查脚本
@@ -97,7 +96,7 @@ jobs:
         [ -s speed.txt ] || echo "警告：speed.txt 文件为空"
 
     - name: Commit verified results
-      uses: stefanzweifel/git-auto-commit-action@v4
+      uses: stefanzweifel/git-auto-commit-action@v5
       with:
         commit_message: "Verified Update: $(date +'%Y-%m-%d %H:%M')"
         file_pattern: |
@@ -106,4 +105,3 @@ jobs:
         skip_fetch: true
         commit_user_name: "GitHub Bot"
         commit_user_email: "github-actions@example.com"
-        allow_empty_commit: true
