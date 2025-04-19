@@ -1,4 +1,4 @@
-name: Proxy Checker Verified
+name: Proxy Checker Ultimate
 
 on:
   schedule:
@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Install system dependencies
       run: |
@@ -22,46 +24,55 @@ jobs:
           unzip \
           python3 \
           python3-pip \
-          netcat-openbsd \
-          openssl
+          netcat-openbsd \  # 关键补丁：支持TCP测试
+          openssl \
+          coreutils  # 确保date命令可用
 
-    - name: Install Hysteria2 (Verified)
+    - name: Install Hysteria2 (修正版)
       run: |
         HYSTERIA_VER=$(curl -s "https://api.github.com/repos/apernet/hysteria/releases/latest" | jq -r '.tag_name')
         sudo curl -fL -o /usr/local/bin/hysteria \
           "https://github.com/apernet/hysteria/releases/download/$HYSTERIA_VER/hysteria-linux-amd64"
         sudo chmod +x /usr/local/bin/hysteria
-        echo "Hysteria2 version: $(hysteria version)"
+        hysteria version
 
-    - name: Install Xray-core (Verified)
+    - name: Install Xray-core (稳定版)
       run: |
+        # 清理旧版本
+        sudo rm -f /usr/local/bin/xray /tmp/xray*
+        
+        # 获取最新版
         XRAY_VER=$(curl -s "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | jq -r '.tag_name')
         echo "Installing Xray-core $XRAY_VER"
         
+        # 下载官方ZIP包
         sudo curl -fL -o /tmp/xray.zip \
           "https://github.com/XTLS/Xray-core/releases/download/$XRAY_VER/Xray-linux-64.zip"
         
+        # 强制解压并安装
         sudo unzip -o /tmp/xray.zip -d /usr/local/bin/
         sudo chmod +x /usr/local/bin/xray
-        echo "Xray version: $(xray version)"
+        xray version
 
-    - name: Setup Python
+    - name: Setup Python environment
       run: |
         python3 -m pip install --upgrade pip
-        pip install pyyaml
+        pip install pyyaml==6.0.1  # 固定版本避免兼容性问题
 
-    - name: Run checker with timestamp
+    - name: Run checker with force update
       run: |
-        # 添加时间戳确保文件变更
-        echo "# Last check: $(date +'%Y-%m-%d %H:%M:%S')" >> nodes.yml
+        # 强制生成新时间戳
+        echo "# Auto generated at $(date +'%Y-%m-%d %H:%M:%S')" > nodes.yml
         python3 sub.py
 
     - name: Commit results
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "Auto update: $(date +'%Y-%m-%d %H:%M')"
+        commit_message: "Auto Update: $(date +'%Y-%m-%d %H:%M:%S')"
         file_pattern: |
           nodes.yml
           speed.txt
         skip_fetch: true
-        allow_empty_commit: true
+        commit_user_name: "GitHub Actions"
+        commit_user_email: "actions@github.com"
+        allow_empty_commit: true  # 允许空提交防止报错
