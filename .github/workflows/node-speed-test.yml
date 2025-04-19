@@ -1,44 +1,49 @@
-name: Node Validator
+name: Advanced Node Test
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # 每6小时运行
+    - cron: '0 */6 * * *'  # 每6小时运行
   workflow_dispatch:
 
 jobs:
-  validate:
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Install system tools
+      
+    - name: Setup environment
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           curl \
           netcat-openbsd \
           python3 \
-          python3-pip
-
-    - name: Setup Python
-      uses: actions/setup-python@v4
+          python3-pip \
+          jq
+        
+        # 安装Xray-core
+        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+        
+        pip install pyyaml
+        
+    - name: Run enhanced tester
+      run: |
+        chmod +x sub.py
+        python3 sub.py
+        
+    - name: Upload results
+      uses: actions/upload-artifact@v3
       with:
-        python-version: '3.10'
-
-    - name: Install dependencies
-      run: pip install pyyaml
-
-    - name: Run validation
-      run: python3 sub.py
-      env:
-        DEBUG: 'true'
-
+        name: node-results
+        path: output/
+        
     - name: Commit results
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "自动更新节点列表"
+        commit_message: "自动更新节点测试结果 [skip ci]"
         file_pattern: |
-          nodes.yml
-          speed.txt
+          output/nodes.yml
+          output/speed.txt
