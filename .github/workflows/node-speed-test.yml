@@ -1,4 +1,5 @@
-name: Proxy Checker Verified
+# node-speed-test.yml
+name: Proxy Checker Ultimate
 
 on:
   schedule:
@@ -17,8 +18,8 @@ jobs:
 
     - name: Setup Ubuntu environment
       run: |
-        # 修复 Ubuntu 24.04 包源问题
-        sudo tee /etc/apt/sources.list.d/additional-repos.list << EOL
+        # 修复包源问题
+        sudo tee /etc/apt/sources.list << EOL
         deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
         deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
         deb http://security.ubuntu.com/ubuntu noble-security main restricted universe multiverse
@@ -39,30 +40,31 @@ jobs:
 
     - name: Verify Python environment
       run: |
-        python3 --version
-        pip3 --version
-        pip3 install --user pyyaml==6.0.1
+        python3 -m pip install --upgrade pip
+        pip3 install pyyaml==6.0.1 requests
 
     - name: Install Hysteria2 (修正版)
       run: |
+        HYSTERIA_VER=2.3.3  # 使用最新稳定版
         sudo curl -fL -o /usr/local/bin/hysteria \
-          "https://github.com/apernet/hysteria/releases/download/v2.0.4/hysteria-linux-amd64"
+          "https://github.com/apernet/hysteria/releases/download/v${HYSTERIA_VER}/hysteria-linux-amd64"
         sudo chmod +x /usr/local/bin/hysteria
         echo "Hysteria2 version: $(hysteria version)"
 
     - name: Install Xray-core (修正版)
       run: |
+        XRAY_VER=1.8.11
         sudo curl -fL -o /tmp/xray.zip \
-          "https://github.com/XTLS/Xray-core/releases/download/v1.8.11/Xray-linux-64.zip"
+          "https://github.com/XTLS/Xray-core/releases/download/v${XRAY_VER}/Xray-linux-64.zip"
         sudo unzip -o /tmp/xray.zip -d /usr/local/bin/
         sudo chmod +x /usr/local/bin/xray
         echo "Xray version: $(xray version)"
 
     - name: Run checker with verification
       run: |
-        # 强制生成初始文件
-        echo "proxies:" > nodes.yml
-        echo "# Speed test results" > speed.txt
+        # 初始化文件
+        echo "proxies: []" > nodes.yml
+        echo "# Speed Results" > speed.txt
         
         # 运行检查脚本
         python3 sub.py
@@ -75,11 +77,9 @@ jobs:
     - name: Commit verified results
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "Verified Update: $(date +'%Y-%m-%d %H:%M')"
+        commit_message: "Auto Update: $(date +'%Y-%m-%d %H:%M')"
         file_pattern: |
           nodes.yml
           speed.txt
         skip_fetch: true
-        commit_user_name: "GitHub Bot"
-        commit_user_email: "github-actions@example.com"
         allow_empty_commit: false
