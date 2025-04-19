@@ -9,280 +9,152 @@ from datetime import datetime
 from tempfile import NamedTemporaryFile
 
 DEBUG = True
-TIMEOUT = 30  # 超时时间 30 秒
+TIMEOUT = 20  # 超时时间 20 秒
 TEST_URLS = [
-    "https://www.gstatic.com/generate_204",
+    "http://cp.cloudflare.com/generate_204",
     "https://www.google.com/generate_204",
-    "http://detectportal.firefox.com/success.txt",
-    "http://cp.cloudflare.com/generate_204"
+    "http://detectportal.firefox.com/success.txt"
 ]
 XRAY_BIN = "/usr/local/bin/xray"
 HYSTERIA_BIN = "/usr/local/bin/hysteria"
-MAX_NODES = 100  # 限制测试节点数量
+MAX_NODES = 50  # 限制测试节点数
 
 def log(message):
     if DEBUG:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
 
+def kill_process(proc):
+    """强制终止进程"""
+    try:
+        proc.terminate()
+        proc.wait(timeout=3)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+    except Exception:
+        pass
+
 # ----------------- Xray 配置文件生成 -----------------
 def generate_xray_config(node, protocol):
-    """生成 Xray 配置文件"""
     config = {
         "log": {"loglevel": "warning"},
-        "inbounds": [
-            {
-                "port": 1080,
-                "protocol": "socks",
-                "settings": {"auth": "noauth", "udp": True}
-            }
-        ],
+        "inbounds": [{"port": 1080, "protocol": "socks", "settings": {"auth": "noauth", "udp": True}}],
         "outbounds": [
-            {
-                "protocol": protocol,
-                "settings": {},
-                "tag": "proxy"
-            },
-            {
-                "protocol": "freedom",
-                "settings": {},
-                "tag": "direct"
-            }
+            {"protocol": protocol, "settings": {}, "tag": "proxy"},
+            {"protocol": "freedom", "settings": {}, "tag": "direct"}
         ],
-        "routing": {
-            "rules": [
-                {"type": "field", "outboundTag": "proxy", "domain": ["geosite:google"]}
-            ]
-        }
+        "routing": {"rules": [{"type": "field", "outboundTag": "proxy", "domain": ["geosite:google"]}]}
     }
 
     if protocol == "vmess":
         config["outbounds"][0]["settings"] = {
-            "vnext": [
-                {
-                    "address": node["server"],
-                    "port": int(node["port"]),
-                    "users": [{"id": node["uuid"], "alterId": node.get("alterId", 0)}]
-                }
-            ]
+            "vnext": [{"address": node["server"], "port": int(node["port"]), "users": [{"id": node["uuid"], "alterId": node.get("alterId", 0)}]}]
         }
         if node.get("network") == "ws":
             config["outbounds"][0]["streamSettings"] = {
                 "network": "ws",
                 "wsSettings": {"path": node.get("ws-opts", {}).get("path", "/")}
             }
-
     elif protocol == "vless":
         config["outbounds"][0]["settings"] = {
-            "vnext": [
-                {
-                    "address": node["server"],
-                    "port": int(node["port"]),
-                    "users": [{"id": node["uuid"], "encryption": "none"}]
-                }
-            ]
+            "vnext": [{"address": node["server"], "port": int(node["port"]), "users": [{"id": node["uuid"], "encryption": "none"}]}]
         }
         if node.get("network") == "grpc":
             config["outbounds"][0]["streamSettings"] = {
                 "network": "grpc",
                 "grpcSettings": {"serviceName": node.get("grpc-opts", {}).get("serviceName", "")}
             }
-
     elif protocol == "trojan":
         config["outbounds"][0]["settings"] = {
-            "servers": [
-                {
-                    "address": node["server"],
-                    "port": int(node["port"]),
-                    "password": node["password"]
-                }
-            ]
+            "servers": [{"address": node["server"], "port": int(node["port"]), "password": node["password"]}]
         }
-
     elif protocol == "shadowsocks":
         config["outbounds"][0]["settings"] = {
-            "servers": [
-                {
-                    "address": node["server"],
-                    "port": int(node["port"]),
-                    "method": node["cipher"],
-                    "password": node["password"]
-                }
-            ]
+            "servers": [{"address": node["server"], "port": int(node["port"]), "method": node["cipher"], "password": node["password"]}]
         }
-
     return config
 
 # ----------------- 协议测试函数 -----------------
 def test_with_xray(node, protocol):
-    """使用 Xray 测试代理节点"""
+    proc = None
+    config_path = None
     try:
         config = generate_xray_config(node, protocol)
         with NamedTemporaryFile("w", suffix=".json", delete=False) as f:
             json.dump(config, f, indent=2)
             config_path = f.name
 
-        # 启动 Xray
-        xray_proc = subprocess.Popen(
-            [XRAY_BIN, "run", "-c", config_path],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-
-        # 等待 Xray 启动
+        proc = subprocess.Popen([XRAY_BIN, "run", "-c", config_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         time.sleep(1)
 
-        # 尝试多个测试 URL
         for test_url in TEST_URLS:
             try:
                 start = time.time()
-                cmd = [
-                    "curl",
-                    "-sS",
-                    "--connect-timeout",
-                    "10",
-                    "--proxy",
-                    "socks5h://127.0.0.1:1080",
-                    "-o",
-                    "/dev/null",
-                    "-w",
-                    "%{http_code}",
-                    test_url
-                ]
+                cmd = ["curl", "-sS", "--connect-timeout", "10", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
-                latency = (time.time() - start) * 1000  # 毫秒
+                latency = (time.time() - start) * 1000
 
-                # 捕获 Xray 日志
-                stderr = xray_proc.stderr.read().decode('utf-8', errors='ignore') if xray_proc.stderr else ""
-                log(f"{protocol.upper()} 测试 {node.get('name')} (URL={test_url}): HTTP 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms, Xray 日志={stderr}")
-
-                if result.stdout.strip() in ["200", "204", "301"]:  # 放宽状态码
-                    # 清理 Xray 进程
-                    xray_proc.terminate()
-                    try:
-                        xray_proc.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        xray_proc.kill()
-                    os.unlink(config_path)
+                log(f"{protocol.upper()} {node.get('name')} (URL={test_url}): 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms")
+                if result.stdout.strip() in ["200", "204", "301"]:
                     return latency
             except subprocess.TimeoutExpired:
-                log(f"{protocol.upper()} 测试 {node.get('name')} (URL={test_url}): 连接超时")
+                log(f"{protocol.upper()} {node.get('name')} (URL={test_url}): 超时")
                 continue
             except Exception as e:
-                log(f"{protocol.upper()} 测试 {node.get('name')} (URL={test_url}): 错误={str(e)}")
+                log(f"{protocol.upper()} {node.get('name')} (URL={test_url}): 错误={str(e)}")
                 continue
 
-        # 清理 Xray 进程
-        xray_proc.terminate()
-        try:
-            xray_proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            xray_proc.kill()
-
-        # 删除临时配置文件
-        os.unlink(config_path)
-
-        log(f"{protocol.upper()} 测试失败 {node.get('name')}: 所有测试 URL 均未通过")
+        log(f"{protocol.upper()} {node.get('name')}: 测试失败")
         return None
     except Exception as e:
-        log(f"{protocol.upper()} 测试失败 {node.get('name')}: {str(e)}")
+        log(f"{protocol.upper()} {node.get('name')}: 异常={str(e)}")
         return None
     finally:
-        # 确保进程被杀死
-        if 'xray_proc' in locals():
-            xray_proc.terminate()
-            try:
-                xray_proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                xray_proc.kill()
+        if proc:
+            kill_process(proc)
+        if config_path and os.path.exists(config_path):
+            os.unlink(config_path)
 
 def test_hysteria2(node):
-    """测试 Hysteria2 协议"""
+    proc = None
+    config_path = None
     try:
-        config = {
-            "server": f"{node['server']}:{node['port']}",
-            "auth": node.get("password", ""),
-            "tls": {"insecure": node.get("allowInsecure", False)}
-        }
+        config = {"server": f"{node['server']}:{node['port']}", "auth": node.get("password", ""), "tls": {"insecure": node.get("allowInsecure", False)}}
         with NamedTemporaryFile("w", suffix=".yaml", delete=False) as f:
             yaml.safe_dump(config, f)
             config_path = f.name
 
-        # 启动 Hysteria2
-        hysteria_proc = subprocess.Popen(
-            [HYSTERIA_BIN, "client", "-c", config_path],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-
-        # 等待启动
+        proc = subprocess.Popen([HYSTERIA_BIN, "client", "-c", config_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         time.sleep(1)
 
-        # 尝试多个测试 URL
         for test_url in TEST_URLS:
             try:
                 start = time.time()
-                cmd = [
-                    "curl",
-                    "-sS",
-                    "--connect-timeout",
-                    "10",
-                    "--proxy",
-                    "socks5h://127.0.0.1:1080",
-                    "-o",
-                    "/dev/null",
-                    "-w",
-                    "%{http_code}",
-                    test_url
-                ]
+                cmd = ["curl", "-sS", "--connect-timeout", "10", "--proxy", "socks5h://127.0.0.1:1080", "-o", "/dev/null", "-w", "%{http_code}", test_url]
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
                 latency = (time.time() - start) * 1000
 
-                # 捕获 Hysteria2 日志
-                stderr = hysteria_proc.stderr.read().decode('utf-8', errors='ignore') if hysteria_proc.stderr else ""
-                log(f"Hysteria2 测试 {node.get('name')} (URL={test_url}): HTTP 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms, Hysteria2 日志={stderr}")
-
-                if result.stdout.strip() in ["200", "204", "301"]:  # 放宽状态码
-                    # 清理进程
-                    hysteria_proc.terminate()
-                    try:
-                        hysteria_proc.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        hysteria_proc.kill()
-                    os.unlink(config_path)
+                log(f"Hysteria2 {node.get('name')} (URL={test_url}): 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms")
+                if result.stdout.strip() in ["200", "204", "301"]:
                     return latency
             except subprocess.TimeoutExpired:
-                log(f"Hysteria2 测试 {node.get('name')} (URL={test_url}): 连接超时")
+                log(f"Hysteria2 {node.get('name')} (URL={test_url}): 超时")
                 continue
             except Exception as e:
-                log(f"Hysteria2 测试 {node.get('name')} (URL={test_url}): 错误={str(e)}")
+                log(f"Hysteria2 {node.get('name')} (URL={test_url}): 错误={str(e)}")
                 continue
 
-        # 清理进程
-        hysteria_proc.terminate()
-        try:
-            hysteria_proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            hysteria_proc.kill()
-
-        # 删除临时配置文件
-        os.unlink(config_path)
-
-        log(f"Hysteria2 测试失败 {node.get('name')}: 所有测试 URL 均未通过")
+        log(f"Hysteria2 {node.get('name')}: 测试失败")
         return None
     except Exception as e:
-        log(f"Hysteria2 测试失败 {node.get('name')}: {str(e)}")
+        log(f"Hysteria2 {node.get('name')}: 异常={str(e)}")
         return None
     finally:
-        # 确保进程被杀死
-        if 'hysteria_proc' in locals():
-            hysteria_proc.terminate()
-            try:
-                hysteria_proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                hysteria_proc.kill()
+        if proc:
+            kill_process(proc)
+        if config_path and os.path.exists(config_path):
+            os.unlink(config_path)
 
 def test_proxy(node):
-    """协议测试分发器"""
     protocol_handlers = {
         "ss": lambda n: test_with_xray(n, "shadowsocks"),
         "vmess": lambda n: test_with_xray(n, "vmess"),
@@ -293,10 +165,9 @@ def test_proxy(node):
 
     proto = node.get("type", "").lower()
     if proto not in protocol_handlers:
-        log(f"⚠️ 不支持的协议类型: {proto}")
+        log(f"⚠️ 不支持协议: {proto} ({node.get('name')})")
         return None
 
-    # 必要字段验证
     required_fields = {
         "ss": ["server", "port", "cipher", "password"],
         "vmess": ["server", "port", "uuid"],
@@ -306,10 +177,16 @@ def test_proxy(node):
     }.get(proto, [])
 
     if any(field not in node for field in required_fields):
-        log(f"❌ 缺失必要字段: {node.get('name')}，缺失字段: {[field for field in required_fields if field not in node]}")
+        log(f"❌ 缺失字段: {node.get('name')} {required_fields}")
         return None
 
-    return protocol_handlers[proto](node)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(protocol_handlers[proto], node)
+        try:
+            return future.result(timeout=TIMEOUT + 5)
+        except concurrent.futures.TimeoutError:
+            log(f"❌ 超时: {node.get('name')}")
+            return None
 
 # ----------------- 主逻辑 -----------------
 def main():
@@ -325,14 +202,12 @@ def main():
             resp.raise_for_status()
             data = yaml.safe_load(resp.text)
             nodes = data.get("proxies", [])
-            # 过滤 SSR 节点
             filtered_nodes = [node for node in nodes if node.get("type", "").lower() != "ssr"]
             all_nodes.extend(filtered_nodes)
-            log(f"✅ 成功加载 {len(nodes)} 节点（过滤后 {len(filtered_nodes)} 个） from {url}")
+            log(f"✅ 加载 {len(nodes)} 节点（过滤后 {len(filtered_nodes)}）: {url}")
         except Exception as e:
-            log(f"❌ 加载失败 {url}: {str(e)}")
+            log(f"❌ 加载失败: {url} {str(e)}")
 
-    # 去重处理
     seen = set()
     unique_nodes = []
     for node in all_nodes:
@@ -340,60 +215,40 @@ def main():
         if key not in seen:
             seen.add(key)
             unique_nodes.append(node)
-    log(f"🔍 去重后节点数: {len(unique_nodes)}")
+    log(f"🔍 去重后: {len(unique_nodes)} 节点")
 
-    # 限制测试节点数量
     unique_nodes = unique_nodes[:MAX_NODES]
-    log(f"🔍 限制测试节点数: {len(unique_nodes)}")
+    log(f"🔍 限制测试: {len(unique_nodes)} 节点")
 
-    # 并发测试
     valid_results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:  # 减少并发
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         futures = {executor.submit(test_proxy, node): node for node in unique_nodes}
-
         for future in concurrent.futures.as_completed(futures):
             node = futures[future]
             try:
                 result = future.result()
                 if result:
                     valid_results.append({"node": node, "latency": result})
-                else:
-                    log(f"⚠️ 节点 {node.get('name')} 测试未通过")
             except Exception as e:
-                log(f"⚠️ 测试异常 {node.get('name')}: {str(e)}")
+                log(f"⚠️ 测试异常: {node.get('name')} {str(e)}")
 
-    # 生成结果文件
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if valid_results:
         sorted_nodes = sorted(valid_results, key=lambda x: x["latency"])[:50]
-        
         with open("nodes.yml", "w", encoding="utf-8") as f:
-            yaml.safe_dump(
-                {"proxies": [n["node"] for n in sorted_nodes]},
-                f,
-                default_flow_style=False,
-                allow_unicode=True
-            )
-
+            yaml.safe_dump({"proxies": [n["node"] for n in sorted_nodes]}, f, default_flow_style=False, allow_unicode=True)
         with open("speed.txt", "w", encoding="utf-8") as f:
-            f.write(f"最后更新: {timestamp}\n")
-            f.write(f"节点总数: {len(sorted_nodes)}\n\n")
+            f.write(f"最后更新: {timestamp}\n节点总数: {len(sorted_nodes)}\n\n")
             for idx, item in enumerate(sorted_nodes, 1):
                 node = item["node"]
-                f.write(
-                    f"{idx:2d}. {node['name']} ({node['type'].upper()})\n"
-                    f"    服务器: {node['server']}:{node['port']}\n"
-                    f"    延迟: {item['latency']:.2f}ms\n\n"
-                )
-
-        log(f"🎉 生成 {len(sorted_nodes)} 个有效节点")
+                f.write(f"{idx:2d}. {node['name']} ({node['type'].upper()})\n    服务器: {node['server']}:{node['port']}\n    延迟: {item['latency']:.2f}ms\n\n")
+        log(f"🎉 生成 {len(sorted_nodes)} 有效节点")
     else:
-        log("❌ 未找到有效节点")
+        log("❌ 无有效节点")
         with open("nodes.yml", "w", encoding="utf-8") as f:
             yaml.safe_dump({"proxies": []}, f, default_flow_style=False, allow_unicode=True)
         with open("speed.txt", "w", encoding="utf-8") as f:
-            f.write(f"最后更新: {timestamp}\n")
-            f.write("未找到有效节点\n")
+            f.write(f"最后更新: {timestamp}\n无有效节点\n")
 
 if __name__ == "__main__":
     main()
