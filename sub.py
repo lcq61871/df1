@@ -1,3 +1,4 @@
+# sub.py
 import os
 import yaml
 import time
@@ -29,7 +30,7 @@ def test_ss(node):
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.stdout.strip() == "204":
-            return (time.time() - start) * 1000  # 返回毫秒
+            return (time.time() - start) * 1000
         return None
     except Exception as e:
         log(f"SS测试失败 {node.get('name')}: {str(e)}")
@@ -38,7 +39,6 @@ def test_ss(node):
 def test_vmess(node):
     """测试VMess协议"""
     try:
-        # 基础TCP连通性测试
         start = time.time()
         cmd = ['nc', '-zvw5', node['server'], str(node['port'])]
         result = subprocess.run(cmd, capture_output=True)
@@ -49,12 +49,94 @@ def test_vmess(node):
         log(f"VMess测试失败 {node.get('name')}: {str(e)}")
         return None
 
+def test_hysteria2(node):
+    """测试Hysteria2协议"""
+    try:
+        config = {
+            "server": f"{node['server']}:{node['port']}",
+            "auth_str": node['auth_str'],
+            "tls": {"insecure": node.get('insecure', False)}
+        }
+        
+        with NamedTemporaryFile(mode='w', delete=False) as f:
+            json.dump(config, f)
+            config_file = f.name
+            
+        cmd = [
+            'hysteria', 'client', '--config', config_file,
+            'test', '--duration', '5', TEST_URL
+        ]
+        start = time.time()
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        os.unlink(config_file)
+        
+        if result.returncode != 0:
+            return None
+            
+        for line in result.stdout.split('\n'):
+            if 'avg_rtt' in line:
+                return float(line.split('=')[1].replace('ms', '').strip())
+        return None
+    except Exception as e:
+        log(f"Hysteria2测试失败 {node.get('name')}: {str(e)}")
+        return None
+
+def test_vless(node):
+    """测试VLESS协议"""
+    try:
+        config = {
+            "inbounds": [{
+                "port": 1080,
+                "protocol": "socks",
+                "settings": {"auth": "noauth"}
+            }],
+            "outbounds": [{
+                "protocol": "vless",
+                "settings": {
+                    "vnext": [{
+                        "address": node['server'],
+                        "port": node['port'],
+                        "users": [{"id": node['uuid']}]
+                    }]
+                },
+                "streamSettings": node.get('streamSettings', {})
+            }]
+        }
+        
+        with NamedTemporaryFile(mode='w', delete=False) as f:
+            json.dump(config, f)
+            config_file = f.name
+            
+        xray_proc = subprocess.Popen(
+            ['xray', 'run', '-c', config_file],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE
+        )
+        time.sleep(2)
+        
+        cmd = [
+            'curl', '-sS', '--socks5-hostname', '127.0.0.1:1080',
+            '-o', '/dev/null', '-w', '%{time_total}', TEST_URL
+        ]
+        start = time.time()
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        xray_proc.terminate()
+        os.unlink(config_file)
+        
+        if result.returncode == 0:
+            return float(result.stdout) * 1000
+        return None
+    except Exception as e:
+        log(f"VLESS测试失败 {node.get('name')}: {str(e)}")
+        return None
+
 def test_proxy(node):
     """协议测试分发器"""
     protocol_handlers = {
         'ss': test_ss,
         'vmess': test_vmess,
-        # 在此添加其他协议处理函数
+        'hysteria2': test_hysteria2,
+        'vless': test_vless
     }
     
     proto = node.get('type', '').lower()
@@ -62,10 +144,11 @@ def test_proxy(node):
         log(f"⚠️ 不支持的协议类型: {proto}")
         return None
         
-    # 必要字段验证
     required_fields = {
         'ss': ['server', 'port', 'cipher', 'password'],
-        'vmess': ['server', 'port', 'uuid']
+        'vmess': ['server', 'port', 'uuid'],
+        'hysteria2': ['server', 'port', 'auth_str'],
+        'vless': ['server', 'port', 'uuid']
     }.get(proto, [])
     
     if any(field not in node for field in required_fields):
@@ -77,8 +160,8 @@ def test_proxy(node):
 # ----------------- 主逻辑 -----------------
 def main():
     sources = [
-        "https://cdn.jsdelivr.net/gh/0xJins/x.sub@refs/heads/main/trials_providers/TW.yaml",
-        "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@refs/heads/main/trial.yaml"
+        "https://cdn.jsdelivr.net/gh/0xJins/x.sub@main/trials_providers/TW.yaml",
+        "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@main/trial.yaml"
     ]
     
     all_nodes = []
@@ -86,8 +169,9 @@ def main():
         try:
             resp = requests.get(url, timeout=15)
             data = yaml.safe_load(resp.text)
-            all_nodes.extend(data.get('proxies', []))
-            log(f"✅ 成功加载 {len(data['proxies'])} 节点 from {url}")
+            nodes = data.get('proxies', [])
+            all_nodes.extend(nodes)
+            log(f"✅ 成功加载 {len(nodes)} 节点 from {url}")
         except Exception as e:
             log(f"❌ 加载失败 {url}: {str(e)}")
 
@@ -109,12 +193,13 @@ def main():
         for future in concurrent.futures.as_completed(futures):
             node = futures[future]
             try:
-                result = future.result()
-                if result:
+                latency = future.result()
+                if latency:
                     valid_results.append({
                         'node': node,
-                        'latency': result
+                        'latency': latency
                     })
+                    log(f"✅ 有效节点: {node['name']} ({latency:.2f}ms)")
             except Exception as e:
                 log(f"⚠️ 测试异常: {str(e)}")
 
@@ -133,8 +218,9 @@ def main():
             
         with open('speed.txt', 'w') as f:
             f.write(f"最后更新: {timestamp}\n")
+            f.write("="*40 + "\n")
             for idx, item in enumerate(sorted_nodes, 1):
-                f.write(f"{idx:2d}. {item['node']['name']}: {item['latency']:.2f}ms\n")
+                f.write(f"{idx:2d}. {item['node']['name']:30} {item['latency']:.2f}ms\n")
         
         log(f"🎉 生成 {len(sorted_nodes)} 个有效节点")
     else:
