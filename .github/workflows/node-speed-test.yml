@@ -5,20 +5,17 @@ on:
   schedule:
     - cron: '0 */6 * * *'
 
-env:
-  PYTHON_VERSION: '3.10'
-  MAX_RETRY: 3
-
 jobs:
   checker:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ env.PYTHON_VERSION }}
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
+        python-version: '3.10'
         cache: 'pip'
 
     - name: Install system dependencies
@@ -34,35 +31,25 @@ jobs:
         pip install \
           requests==2.31.0 \
           pyyaml==6.0.1 \
-          shadowsocks==3.0.0 \
-          v2ray-core==5.4.1
+          shadowsocks==2.8.2 \
+          https://github.com/2dust/v2ray-core/releases/download/v4.45.2/v2ray-core-4.45.2-py3-none-any.whl
 
     - name: Run node checker
-      run: |
-        retry=0
-        until python sub.py || [ $retry -eq $MAX_RETRY ]; do
-          retry=$((retry+1))
-          echo "Retry attempt $retry..."
-          sleep 5
-        done
+      run: python sub.py
       env:
         DEBUG: 'true'
         TIMEOUT: '20'
 
     - name: Upload results
-      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: node-results
         path: |
           nodes.yml
           speed.txt
-        retention-days: 3
 
-    - name: Push to repository
-      if: success()
+    - name: Push changes
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: main
-        force: true
