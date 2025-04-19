@@ -142,7 +142,7 @@ def main():
 
     # 生成结果文件
     if valid_results:
-        sorted_nodes = sorted(valid_results, key=lambda x: x['latency'])[:50]
+        sorted_nodes = sorted(valid_results, key=lambda x: x['latency'])[:100]
         
         with open('nodes.yml', 'w') as f:
             yaml.safe_dump(
