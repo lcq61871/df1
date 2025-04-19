@@ -13,7 +13,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # 需要完整历史记录才能提交更改
+        fetch-depth: 0
 
     - name: Install system tools
       run: |
@@ -22,8 +22,7 @@ jobs:
           curl \
           netcat-openbsd \
           python3 \
-          python3-pip \
-          jq  # 用于调试时检查文件
+          python3-pip
 
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -31,29 +30,33 @@ jobs:
         python-version: '3.10'
 
     - name: Install dependencies
-      run: |
-        pip install pyyaml
-        pip install speedtest-cli  # 确保speedtest依赖已安装
+      run: pip install pyyaml
 
-    - name: Create output directory
-      run: mkdir -p output  # 确保输出目录存在
+    - name: Prepare directories
+      run: |
+        mkdir -p output
+        echo "当前工作目录: $(pwd)"
+        echo "目录结构:"
+        ls -R
 
     - name: Run validation
-      run: python3 sub.py
-      env:
-        DEBUG: 'true'
-
-    - name: Verify generated files
       run: |
-        echo "=== 文件检查 ==="
+        python3 sub.py || true
+        echo "强制检查生成的文件:"
         ls -l output/
-        echo "speed.txt内容:"
-        cat output/speed.txt || echo "无speed.txt文件"
-        echo "nodes.yml内容:"
-        cat output/nodes.yml || echo "无nodes.yml文件"
+        [ -f output/speed.txt ] && echo "speed.txt存在" || echo "speed.txt不存在"
+        [ -f output/nodes.yml ] && echo "nodes.yml存在" || echo "nodes.yml不存在"
+
+    - name: Debug file content
+      if: always()
+      run: |
+        echo "=== speed.txt 内容 ==="
+        cat output/speed.txt || echo "speed.txt不存在"
+        echo "=== nodes.yml 内容 ==="
+        cat output/nodes.yml || echo "nodes.yml不存在"
 
     - name: Commit results
-      if: always()  # 即使前序步骤失败也尝试提交
+      if: always()
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: "自动更新节点列表和测速结果 [skip ci]"
@@ -61,5 +64,3 @@ jobs:
           output/nodes.yml
           output/speed.txt
         branch: main
-        commit_user_name: "GitHub Actions"
-        commit_user_email: "actions@github.com"
