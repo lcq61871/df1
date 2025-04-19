@@ -1,0 +1,33 @@
+name: Node Speed Test
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  speed-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pyyaml
+
+      - name: Run speed test script
+        run: python sub.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v3
+        with:
+          name: speed-test-results
+          path: sorted_nodes.yml
