@@ -9,8 +9,12 @@ from datetime import datetime
 from tempfile import NamedTemporaryFile
 
 DEBUG = True
-TIMEOUT = 20
-TEST_URL = "https://www.gstatic.com/generate_204"
+TIMEOUT = 30  # 超时时间 30 秒
+TEST_URLS = [
+    "https://www.gstatic.com/generate_204",
+    "https://www.google.com/generate_204",
+    "http://detectportal.firefox.com/success.txt"
+]
 XRAY_BIN = "/usr/local/bin/xray"
 HYSTERIA_BIN = "/usr/local/bin/hysteria"
 
@@ -104,6 +108,22 @@ def generate_xray_config(node, protocol):
             ]
         }
 
+    elif protocol == "ssr":
+        config["outbounds"][0]["settings"] = {
+            "servers": [
+                {
+                    "address": node["server"],
+                    "port": int(node["port"]),
+                    "method": node["cipher"],
+                    "password": node["password"],
+                    "obfs": node.get("obfs", "plain"),
+                    "obfsParam": node.get("obfs-param", ""),
+                    "protocol": node.get("protocol", "origin"),
+                    "protocolParam": node.get("protocol-param", "")
+                }
+            ]
+        }
+
     return config
 
 # ----------------- 协议测试函数 -----------------
@@ -125,23 +145,45 @@ def test_with_xray(node, protocol):
         # 等待 Xray 启动
         time.sleep(1)
 
-        # 测试连接
-        start = time.time()
-        cmd = [
-            "curl",
-            "-sS",
-            "--connect-timeout",
-            "10",
-            "--proxy",
-            "socks5h://127.0.0.1:1080",
-            "-o",
-            "/dev/null",
-            "-w",
-            "%{http_code}",
-            TEST_URL
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
-        latency = (time.time() - start) * 1000  # 毫秒
+        # 尝试多个测试 URL
+        for test_url in TEST_URLS:
+            try:
+                start = time.time()
+                cmd = [
+                    "curl",
+                    "-sS",
+                    "--connect-timeout",
+                    "10",
+                    "--proxy",
+                    "socks5h://127.0.0.1:1080",
+                    "-o",
+                    "/dev/null",
+                    "-w",
+                    "%{http_code}",
+                    test_url
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
+                latency = (time.time() - start) * 1000  # 毫秒
+
+                # 捕获 Xray 日志
+                stderr = xray_proc.stderr.read().decode('utf-8', errors='ignore') if xray_proc.stderr else ""
+                log(f"{protocol.upper()} 测试 {node.get('name')} (URL={test_url}): HTTP 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms, Xray 日志={stderr}")
+
+                if result.stdout.strip() == "204" or (test_url.endswith("success.txt") and result.stdout.strip() == "200"):
+                    # 清理 Xray 进程
+                    xray_proc.terminate()
+                    try:
+                        xray_proc.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        xray_proc.kill()
+                    os.unlink(config_path)
+                    return latency
+            except subprocess.TimeoutExpired:
+                log(f"{protocol.upper()} 测试 {node.get('name')} (URL={test_url}): 连接超时")
+                continue
+            except Exception as e:
+                log(f"{protocol.upper()} 测试 {node.get('name')} (URL={test_url}): 错误={str(e)}")
+                continue
 
         # 清理 Xray 进程
         xray_proc.terminate()
@@ -153,11 +195,10 @@ def test_with_xray(node, protocol):
         # 删除临时配置文件
         os.unlink(config_path)
 
-        if result.stdout.strip() == "204":
-            return latency
+        log(f"{protocol.upper()} 测试失败 {node.get('name')}: 所有测试 URL 均未通过")
         return None
     except Exception as e:
-        log(f"{protocol.upper()}测试失败 {node.get('name')}: {str(e)}")
+        log(f"{protocol.upper()} 测试失败 {node.get('name')}: {str(e)}")
         return None
 
 def test_hysteria2(node):
@@ -182,23 +223,45 @@ def test_hysteria2(node):
         # 等待启动
         time.sleep(1)
 
-        # 测试连接
-        start = time.time()
-        cmd = [
-            "curl",
-            "-sS",
-            "--connect-timeout",
-            "10",
-            "--proxy",
-            "socks5h://127.0.0.1:1080",
-            "-o",
-            "/dev/null",
-            "-w",
-            "%{http_code}",
-            TEST_URL
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
-        latency = (time.time() - start) * 1000
+        # 尝试多个测试 URL
+        for test_url in TEST_URLS:
+            try:
+                start = time.time()
+                cmd = [
+                    "curl",
+                    "-sS",
+                    "--connect-timeout",
+                    "10",
+                    "--proxy",
+                    "socks5h://127.0.0.1:1080",
+                    "-o",
+                    "/dev/null",
+                    "-w",
+                    "%{http_code}",
+                    test_url
+                ]
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
+                latency = (time.time() - start) * 1000
+
+                # 捕获 Hysteria2 日志
+                stderr = hysteria_proc.stderr.read().decode('utf-8', errors='ignore') if hysteria_proc.stderr else ""
+                log(f"Hysteria2 测试 {node.get('name')} (URL={test_url}): HTTP 状态码={result.stdout.strip()}, 延迟={latency:.2f}ms, Hysteria2 日志={stderr}")
+
+                if result.stdout.strip() == "204" or (test_url.endswith("success.txt") and result.stdout.strip() == "200"):
+                    # 清理进程
+                    hysteria_proc.terminate()
+                    try:
+                        hysteria_proc.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        hysteria_proc.kill()
+                    os.unlink(config_path)
+                    return latency
+            except subprocess.TimeoutExpired:
+                log(f"Hysteria2 测试 {node.get('name')} (URL={test_url}): 连接超时")
+                continue
+            except Exception as e:
+                log(f"Hysteria2 测试 {node.get('name')} (URL={test_url}): 错误={str(e)}")
+                continue
 
         # 清理进程
         hysteria_proc.terminate()
@@ -210,11 +273,10 @@ def test_hysteria2(node):
         # 删除临时配置文件
         os.unlink(config_path)
 
-        if result.stdout.strip() == "204":
-            return latency
+        log(f"Hysteria2 测试失败 {node.get('name')}: 所有测试 URL 均未通过")
         return None
     except Exception as e:
-        log(f"Hysteria2测试失败 {node.get('name')}: {str(e)}")
+        log(f"Hysteria2 测试失败 {node.get('name')}: {str(e)}")
         return None
 
 def test_proxy(node):
@@ -225,6 +287,7 @@ def test_proxy(node):
         "vless": lambda n: test_with_xray(n, "vless"),
         "trojan": lambda n: test_with_xray(n, "trojan"),
         "hysteria2": test_hysteria2,
+        "ssr": lambda n: test_with_xray(n, "ssr"),
     }
 
     proto = node.get("type", "").lower()
@@ -238,11 +301,12 @@ def test_proxy(node):
         "vmess": ["server", "port", "uuid"],
         "vless": ["server", "port", "uuid"],
         "trojan": ["server", "port", "password"],
-        "hysteria2": ["server", "port", "password"]
+        "hysteria2": ["server", "port", "password"],
+        "ssr": ["server", "port", "cipher", "password", "obfs", "protocol"]
     }.get(proto, [])
 
     if any(field not in node for field in required_fields):
-        log(f"❌ 缺失必要字段: {node.get('name')}")
+        log(f"❌ 缺失必要字段: {node.get('name')}，缺失字段: {[field for field in required_fields if field not in node]}")
         return None
 
     return protocol_handlers[proto](node)
@@ -261,6 +325,10 @@ def main():
             resp.raise_for_status()
             data = yaml.safe_load(resp.text)
             nodes = data.get("proxies", [])
+            # 可选：过滤 SSR 节点
+            # filtered_nodes = [node for node in nodes if node.get("type", "").lower() != "ssr"]
+            # all_nodes.extend(filtered_nodes)
+            # log(f"✅ 成功加载 {len(nodes)} 节点（过滤后 {len(filtered_nodes)} 个） from {url}")
             all_nodes.extend(nodes)
             log(f"✅ 成功加载 {len(nodes)} 节点 from {url}")
         except Exception as e:
@@ -278,7 +346,7 @@ def main():
 
     # 并发测试
     valid_results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:  # 减少并发
         futures = {executor.submit(test_proxy, node): node for node in unique_nodes}
 
         for future in concurrent.futures.as_completed(futures):
@@ -287,14 +355,16 @@ def main():
                 result = future.result()
                 if result:
                     valid_results.append({"node": node, "latency": result})
+                else:
+                    log(f"⚠️ 节点 {node.get('name')} 测试未通过")
             except Exception as e:
                 log(f"⚠️ 测试异常 {node.get('name')}: {str(e)}")
 
     # 生成结果文件
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if valid_results:
         sorted_nodes = sorted(valid_results, key=lambda x: x["latency"])[:50]
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+        
         with open("nodes.yml", "w", encoding="utf-8") as f:
             yaml.safe_dump(
                 {"proxies": [n["node"] for n in sorted_nodes]},
@@ -305,7 +375,7 @@ def main():
 
         with open("speed.txt", "w", encoding="utf-8") as f:
             f.write(f"最后更新: {timestamp}\n")
-            f.write("节点总数: {}\n\n".format(len(sorted_nodes)))
+            f.write(f"节点总数: {len(sorted_nodes)}\n\n")
             for idx, item in enumerate(sorted_nodes, 1):
                 node = item["node"]
                 f.write(
@@ -317,8 +387,10 @@ def main():
         log(f"🎉 生成 {len(sorted_nodes)} 个有效节点")
     else:
         log("❌ 未找到有效节点")
+        with open("nodes.yml", "w", encoding="utf-8") as f:
+            yaml.safe_dump({"proxies": []}, f, default_flow_style=False, allow_unicode=True)
         with open("speed.txt", "w", encoding="utf-8") as f:
-            f.write(f"最后更新: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"最后更新: {timestamp}\n")
             f.write("未找到有效节点\n")
 
 if __name__ == "__main__":
