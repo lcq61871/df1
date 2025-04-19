@@ -8,7 +8,7 @@ on:
 jobs:
   verified-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 60  # 整个工作流最多运行 60 分钟
+    timeout-minutes: 600  # 整个工作流最多运行 60 分钟
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -86,7 +86,7 @@ jobs:
         echo "Xray 版本: $(xray version || echo '版本检查失败')"
 
     - name: Run checker with verification
-      timeout-minutes: 30  # 限制 sub.py 运行时间为 30 分钟
+      timeout-minutes: 300  # 限制 sub.py 运行时间为 30 分钟
       run: |
         # 强制生成初始文件
         echo "proxies: []" > nodes.yml
