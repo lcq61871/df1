@@ -1,44 +1,59 @@
-name: Node Validator
+name: Advanced Proxy Check
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 每6小时运行
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
-  validate:
+  check:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install system tools
+    - name: Setup environment
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           curl \
           netcat-openbsd \
           python3 \
-          python3-pip
-
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+          python3-pip \
+          unzip
+        
+        # 安装 Hysteria
+        HYSTERIA_VER=$(curl -s https://api.github.com/repos/apernet/hysteria/releases/latest | grep 'tag_name' | cut -d '"' -f 4)
+        wget https://github.com/apernet/hysteria/releases/download/$HYSTERIA_VER/hysteria-linux-amd64
+        sudo install -m 755 hysteria-linux-amd64 /usr/local/bin/hysteria
+        
+        # 安装 Xray-core
+        XRAY_VER=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | grep 'tag_name' | cut -d '"' -f 4)
+        wget https://github.com/XTLS/Xray-core/releases/download/$XRAY_VER/Xray-linux-64.zip
+        unzip Xray-linux-64.zip
+        sudo install -m 755 xray /usr/local/bin/
 
     - name: Install dependencies
       run: pip install pyyaml
 
-    - name: Run validation
+    - name: Run checker
       run: python3 sub.py
       env:
         DEBUG: 'true'
 
-    - name: Commit results
+    - name: Upload results
+      uses: actions/upload-artifact@v4
+      with:
+        name: proxy-results
+        path: |
+          nodes.yml
+          speed.txt
+
+    - name: Auto commit
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "自动更新节点列表"
+        commit_message: "Auto update proxy list"
         file_pattern: |
           nodes.yml
           speed.txt
