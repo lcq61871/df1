@@ -10,8 +10,20 @@ TIMEOUT = 15  # 总超时时间(秒)
 TEST_URL = "https://www.gstatic.com/generate_204"
 
 def log(message):
+    """增强的日志函数，同时打印到控制台和日志文件"""
+    timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+    log_msg = f"[{timestamp}] {message}"
     if DEBUG:
-        print(f"[{time.strftime('%H:%M:%S')}] {message}")
+        print(log_msg)
+    
+    # 确保日志目录存在
+    log_dir = "logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+    # 写入日志文件
+    with open(os.path.join(log_dir, "sub.log"), "a") as f:
+        f.write(log_msg + "\n")
 
 def test_ss(node):
     """测试Shadowsocks节点"""
@@ -93,6 +105,17 @@ def test_node(node):
         log(f"全局异常: {str(e)}")
         return None
 
+def ensure_output_directory():
+    """确保输出目录存在"""
+    output_dir = "output"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    return output_dir
+
+def main():
+    log("=== 开始节点测试 ===")
+    log(f"当前工作目录: {os.getcwd()}")
+    
 def main():
     # 加载节点源
     sources = [
@@ -103,6 +126,7 @@ def main():
     all_nodes = []
     for url in sources:
         try:
+            log(f"正在加载节点源: {url}")
             result = subprocess.run(
                 ['curl', '-sSL', url],
                 stdout=subprocess.PIPE,
@@ -140,26 +164,43 @@ def main():
                 log(f"⚠️ 并发错误: {str(e)}")
 
     # 生成结果文件
+    output_dir = ensure_output_directory()
+    
     if valid_results:
         sorted_nodes = sorted(valid_results, key=lambda x: x['latency'])[:50]
         
-        with open('nodes.yml', 'w') as f:
-            yaml.safe_dump(
-                {'proxies': [n['node'] for n in sorted_nodes]},
-                f,
-                default_flow_style=False,
-                allow_unicode=True
-            )
-            
-        with open('speed.txt', 'w') as f:
-            f.write("排名 | 节点名称 | 延迟(ms)\n")
-            f.write("-"*40 + "\n")
-            for idx, item in enumerate(sorted_nodes, 1):
-                f.write(f"{idx:2d}. {item['node']['name']} | {item['latency']:.2f}\n")
+        # 写入节点YAML文件
+        yaml_file = os.path.join(output_dir, 'nodes.yml')
+        try:
+            with open(yaml_file, 'w') as f:
+                yaml.safe_dump(
+                    {'proxies': [n['node'] for n in sorted_nodes]},
+                    f,
+                    default_flow_style=False,
+                    allow_unicode=True
+                )
+            log(f"✅ 成功生成节点文件: {yaml_file}")
+        except Exception as e:
+            log(f"❌ 写入nodes.yml失败: {str(e)}")
+        
+        # 写入速度测试文件
+        speed_file = os.path.join(output_dir, 'speed.txt')
+        try:
+            with open(speed_file, 'w') as f:
+                f.write("排名 | 节点名称 | 延迟(ms)\n")
+                f.write("-"*40 + "\n")
+                for idx, item in enumerate(sorted_nodes, 1):
+                    f.write(f"{idx:2d}. {item['node']['name']} | {item['latency']:.2f}\n")
+            log(f"✅ 成功生成速度测试文件: {speed_file}")
+        except Exception as e:
+            log(f"❌ 写入speed.txt失败: {str(e)}")
         
         log(f"🎉 生成 {len(sorted_nodes)} 个有效节点")
     else:
         log("❌ 未找到有效节点")
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        log(f"!!! 主程序异常: {str(e)}")
