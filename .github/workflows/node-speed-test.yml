@@ -1,54 +1,31 @@
-name: Enhanced Node Checker
+name: Proxy Checker
 
 on:
-  workflow_dispatch:
   schedule:
     - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
-  checker:
+  check:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
-
-    - name: Set up Python
+    
+    - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        cache: 'pip'
-
-    - name: Install system dependencies
+    
+    - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          libsodium-dev \
-          build-essential
-
-    - name: Install Python packages
-      run: |
-        pip install --upgrade pip
-        pip install \
-          requests==2.31.0 \
-          pyyaml==6.0.1 \
-          shadowsocks==2.8.2 \
-          vmess-python==0.3.0  # 使用替代的VMess库
-
-    - name: Run node checker
+        python -m pip install --upgrade pip
+        pip install requests pyyaml
+    
+    - name: Run checker
       run: python sub.py
-      env:
-        DEBUG: 'true'
-        TIMEOUT: '20'
-
-    - name: Upload results
-      uses: actions/upload-artifact@v4
-      with:
-        name: node-results
-        path: |
-          nodes.yml
-          speed.txt
-
-    - name: Push changes
+    
+    - name: Commit & Push
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
