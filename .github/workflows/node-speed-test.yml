@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write  # 允许git-auto-commit提交更改
+  contents: write
 
 jobs:
   test:
@@ -17,9 +17,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # 需要完整历史记录才能提交更改
+        fetch-depth: 0
 
-    - name: Setup system tools
+    - name: Setup environment
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -30,10 +30,11 @@ jobs:
           jq \
           socat
 
-    - name: Install Xray-core
-      run: |
-        bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
-        xray -version
+        # 使用sudo安装Xray
+        sudo bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+        
+        # 验证安装
+        /usr/local/bin/xray -version || echo "Xray安装验证失败"
 
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -43,37 +44,29 @@ jobs:
     - name: Install Python dependencies
       run: pip install pyyaml
 
-    - name: Run enhanced tester
+    - name: Run tester
       run: |
         chmod +x sub.py
         python3 sub.py
 
-    - name: Verify generated files
+    - name: Verify results
       run: |
-        echo "=== Generated Files ==="
+        echo "=== 测试结果 ==="
         ls -l output/
-        echo "=== nodes.yml sample ==="
-        head -n 10 output/nodes.yml || echo "No nodes.yml found"
-        echo "=== speed.txt sample ==="
-        head -n 10 output/speed.txt || echo "No speed.txt found"
+        [ -f output/nodes.yml ] && echo "nodes.yml存在" || echo "nodes.yml不存在"
+        [ -f output/speed.txt ] && echo "speed.txt存在" || echo "speed.txt不存在"
 
-    - name: Upload results as artifact
-      uses: actions/upload-artifact@v4  # 使用最新v4版本
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
       with:
-        name: node-test-results
-        path: |
-          output/nodes.yml
-          output/speed.txt
-          sub.log
+        name: node-results
+        path: output/
         retention-days: 3
 
-    - name: Commit results to repository
+    - name: Commit results
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "Auto-update node test results [skip ci]"
+        commit_message: "自动更新节点测试结果 [skip ci]"
         file_pattern: |
           output/nodes.yml
           output/speed.txt
-        commit_user_name: "GitHub Actions"
-        commit_user_email: "actions@github.com"
-        branch: main
