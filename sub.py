@@ -9,49 +9,89 @@ from datetime import datetime
 from tempfile import NamedTemporaryFile
 
 DEBUG = True
-TIMEOUT = 20  # 总超时时间(秒)
+TIMEOUT = 20
 TEST_URL = "https://www.gstatic.com/generate_204"
 
 def log(message):
     if DEBUG:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
 
-# ----------------- 节点加载函数 -----------------
-def fetch_nodes(url):
-    """从指定URL抓取节点数据"""
+# ----------------- 协议测试函数 -----------------
+def test_ss(node):
+    """测试Shadowsocks协议"""
     try:
-        log(f"⏳ 开始抓取节点源: {url}")
-        
-        # 通过CDN获取数据
-        resp = requests.get(url, timeout=15)
-        resp.raise_for_status()
-        
-        # 解析YAML内容
-        data = yaml.safe_load(resp.text)
-        nodes = data.get('proxies', [])
-        
-        log(f"✅ 成功加载 {len(nodes)} 个节点 from {url}")
-        return nodes
-        
+        start = time.time()
+        cmd = [
+            'curl', '-sS', '--connect-timeout', '10',
+            '--socks5-hostname', f"{node['server']}:{node['port']}",
+            '--proxy-user', f"{node['cipher']}:{node['password']}",
+            '-o', '/dev/null', '-w', '%{http_code}', TEST_URL
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.stdout.strip() == "204":
+            return (time.time() - start) * 1000  # 返回毫秒
+        return None
     except Exception as e:
-        log(f"❌ 抓取失败 {url}: {str(e)}")
-        return []
+        log(f"SS测试失败 {node.get('name')}: {str(e)}")
+        return None
+
+def test_vmess(node):
+    """测试VMess协议"""
+    try:
+        # 基础TCP连通性测试
+        start = time.time()
+        cmd = ['nc', '-zvw5', node['server'], str(node['port'])]
+        result = subprocess.run(cmd, capture_output=True)
+        if result.returncode == 0:
+            return (time.time() - start) * 1000
+        return None
+    except Exception as e:
+        log(f"VMess测试失败 {node.get('name')}: {str(e)}")
+        return None
+
+def test_proxy(node):
+    """协议测试分发器"""
+    protocol_handlers = {
+        'ss': test_ss,
+        'vmess': test_vmess,
+        # 在此添加其他协议处理函数
+    }
+    
+    proto = node.get('type', '').lower()
+    if proto not in protocol_handlers:
+        log(f"⚠️ 不支持的协议类型: {proto}")
+        return None
+        
+    # 必要字段验证
+    required_fields = {
+        'ss': ['server', 'port', 'cipher', 'password'],
+        'vmess': ['server', 'port', 'uuid']
+    }.get(proto, [])
+    
+    if any(field not in node for field in required_fields):
+        log(f"❌ 缺失必要字段: {node.get('name')}")
+        return None
+        
+    return protocol_handlers[proto](node)
 
 # ----------------- 主逻辑 -----------------
 def main():
-    # 配置节点源列表
     sources = [
         "https://cdn.jsdelivr.net/gh/0xJins/x.sub@refs/heads/main/trials_providers/TW.yaml",
         "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@refs/heads/main/trial.yaml"
     ]
     
-    # 抓取所有节点
     all_nodes = []
     for url in sources:
-        nodes = fetch_nodes(url)
-        all_nodes.extend(nodes)
-    
-    # 去重处理（服务器+端口+类型）
+        try:
+            resp = requests.get(url, timeout=15)
+            data = yaml.safe_load(resp.text)
+            all_nodes.extend(data.get('proxies', []))
+            log(f"✅ 成功加载 {len(data['proxies'])} 节点 from {url}")
+        except Exception as e:
+            log(f"❌ 加载失败 {url}: {str(e)}")
+
+    # 去重处理
     seen = set()
     unique_nodes = []
     for node in all_nodes:
@@ -60,9 +100,6 @@ def main():
             seen.add(key)
             unique_nodes.append(node)
     log(f"🔍 去重后节点数: {len(unique_nodes)}")
-
-    # 协议测试函数（保持原有实现）
-    # ... [test_ss, test_vmess, test_hysteria2, test_vless 等函数保持不变]
 
     # 并发测试
     valid_results = []
@@ -74,8 +111,10 @@ def main():
             try:
                 result = future.result()
                 if result:
-                    valid_results.append(result)
-                    log(f"✅ 有效节点: {node['name']} - {result['latency']:.2f}ms")
+                    valid_results.append({
+                        'node': node,
+                        'latency': result
+                    })
             except Exception as e:
                 log(f"⚠️ 测试异常: {str(e)}")
 
@@ -84,26 +123,22 @@ def main():
         sorted_nodes = sorted(valid_results, key=lambda x: x['latency'])[:50]
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # 生成 nodes.yml
         with open('nodes.yml', 'w') as f:
-            f.write(f"# 最后更新时间: {timestamp}\n")
             yaml.safe_dump(
                 {'proxies': [n['node'] for n in sorted_nodes]},
                 f,
                 default_flow_style=False,
                 allow_unicode=True
             )
-        
-        # 生成 speed.txt
+            
         with open('speed.txt', 'w') as f:
-            f.write(f"最后测试时间: {timestamp}\n")
-            f.write("="*40 + "\n")
+            f.write(f"最后更新: {timestamp}\n")
             for idx, item in enumerate(sorted_nodes, 1):
-                f.write(f"{idx:2d}. {item['node']['name']:30} {item['latency']:.2f}ms\n")
+                f.write(f"{idx:2d}. {item['node']['name']}: {item['latency']:.2f}ms\n")
         
-        log(f"🎉 成功筛选 {len(sorted_nodes)} 个优质节点")
+        log(f"🎉 生成 {len(sorted_nodes)} 个有效节点")
     else:
-        log("⚠️ 未找到任何有效节点")
+        log("❌ 未找到有效节点")
 
 if __name__ == '__main__':
     main()
