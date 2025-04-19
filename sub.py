@@ -1,184 +1,90 @@
-import os
-import subprocess
 import requests
-import time
 import yaml
-import asyncio
-import httpx
+import socket
+import concurrent.futures
+import time
+from collections import OrderedDict
 
-SUB_URLS = [
-    "https://raw.githubusercontent.com/mfbpn/tg_mfbpn_sub/refs/heads/main/trial.yaml"
-]
-
-CLASH_CONFIG = "clash_config.yaml"
-CLASH_BIN = "./clash-meta"
-PROXY = "http://127.0.0.1:7890"
-TEST_URLS = ["http://httpbin.org/status/200", "http://ipinfo.io/json", "http://1.1.1.1"]
-TIMEOUT = 40
-TOP_N = 50
-
-def merge_yaml_subs(urls):
-    all_nodes = []
-    for url in urls:
-        try:
-            print(f"正在获取 {url}...")
-            r = requests.get(url, timeout=10)
-            r.raise_for_status()
-            data = yaml.safe_load(r.text)
-            if "proxies" in data and data["proxies"]:
-                print(f"在 {url} 中找到 {len(data['proxies'])} 个代理")
-                all_nodes.extend(data["proxies"])
-            else:
-                print(f"⚠️ {url} 中没有找到代理")
-        except Exception as e:
-            print(f"❌ 获取 {url} 失败: {e}")
-    return all_nodes
-
-def write_clash_config(proxies):
-    config = {
-        "mixed-port": 7890,
-        "allow-lan": True,
-        "mode": "rule",
-        "log-level": "debug",
-        "external-controller": "127.0.0.1:9090",
-        "dns": {
-            "enable": True,
-            "listen": "0.0.0.0:53",
-            "default-nameserver": ["8.8.8.8", "1.1.1.1"],
-            "nameserver": ["8.8.8.8", "1.1.1.1"]
-        },
-        "proxies": proxies,
-        "proxy-groups": [{
-            "name": "auto",
-            "type": "url-test",
-            "url": TEST_URLS[0],
-            "interval": 300,
-            "proxies": [p["name"] for p in proxies]
-        }],
-        "rules": ["MATCH,auto"]
-    }
-    with open(CLASH_CONFIG, "w", encoding="utf-8") as f:
-        yaml.dump(config, f, allow_unicode=True)
-    print(f"已生成 {CLASH_CONFIG}，包含 {len(proxies)} 个代理")
-    with open(CLASH_CONFIG, "r", encoding="utf-8") as f:
-        print(f"Clash 配置文件内容:\n{f.read()}")
-
-def start_clash():
-    with open("clash.log", "w", encoding="utf-8") as log:
-        log.write("Clash 日志初始化\n")
-        proc = subprocess.Popen([CLASH_BIN, "-f", CLASH_CONFIG], stdout=log, stderr=log)
-    print("🚀 Clash.meta 已启动，PID: {proc.pid}")
-    for _ in range(30):
-        try:
-            r = requests.get("http://127.0.0.1:9090", timeout=2)
-            print(f"✅ Clash.meta 运行正常，状态码: {r.status_code}")
-            return proc
-        except Exception as e:
-            print(f"等待 Clash 启动: {str(e)}")
-            time.sleep(1)
-    print("❌ Clash.meta 启动失败")
-    with open("clash.log", "r", encoding="utf-8") as log:
-        print("Clash 日志:", log.read())
-    proc.terminate()
-    return None
-
-async def test_speed(name, test_url):
-    headers = {"Proxy-Connection": "keep-alive"}
-    print(f"正在测试 {name} 使用 {test_url}...")
+def fetch_yaml(url):
     try:
-        async with httpx.AsyncClient(timeout=TIMEOUT, headers=headers) as client:
-            r = await client.get(test_url, proxies={"http://": PROXY, "https://": PROXY})
-            if r.status_code in [200, 204]:
-                delay = round(r.elapsed.total_seconds() * 1000, 2)
-                print(f"[✓] {name}: {delay} ms")
-                return name, delay
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        data = yaml.safe_load(resp.content)
+        return data.get('proxies', [])
     except Exception as e:
-        print(f"[✗] {name}: 测试失败 ({str(e)})")
-    return name, None
+        print(f"Error fetching {url}: {str(e)}")
+        return []
 
-async def run_tests(names, test_url):
-    return await asyncio.gather(*[test_speed(name, test_url) for name in names])
+def tcp_ping(server, port, timeout=5):
+    try:
+        start = time.time()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(timeout)
+            s.connect((server, port))
+            return (time.time() - start) * 1000  # 返回毫秒
+    except Exception as e:
+        return None
 
-def cleanup():
-    for f in ["nodes.yml", "speed.txt", CLASH_CONFIG, "clash.log"]:
-        if os.path.exists(f):
-            os.remove(f)
-    print("已清理旧文件")
+def test_node(node):
+    try:
+        if not all(key in node for key in ['server', 'port', 'name']):
+            return None
+            
+        latency = tcp_ping(node['server'], node['port'])
+        if latency is None:
+            return None
+            
+        return {
+            'node': node,
+            'latency': latency
+        }
+    except Exception as e:
+        return None
 
 def main():
-    try:
-        cleanup()
-        with open("speed.txt", "w", encoding="utf-8") as f:
-            f.write("初始化\n")
-        with open("clash.log", "w", encoding="utf-8") as f:
-            f.write("Clash 日志初始化\n")
+    urls = [
+        "https://cdn.jsdelivr.net/gh/0xJins/x.sub@refs/heads/main/trials_providers/TW.yaml",
+        "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@refs/heads/main/trial.yaml"
+    ]
 
-        proxies = merge_yaml_subs(SUB_URLS)
-        print(f"✅ 共获取: {len(proxies)} 个节点")
+    # 获取并合并节点
+    all_nodes = []
+    for url in urls:
+        print(f"Processing {url}...")
+        nodes = fetch_yaml(url)
+        all_nodes.extend(nodes)
+    
+    # 去重（根据节点名称）
+    unique_nodes = list(OrderedDict(((n['name'], n) for n in all_nodes)).values())
+    print(f"Total {len(unique_nodes)} unique nodes found")
 
-        if not proxies:
-            print("❌ 未获取到节点，退出")
-            with open("speed.txt", "w", encoding="utf-8") as f:
-                f.write("未获取到节点\n")
-            return
-
-        write_clash_config(proxies)
-        clash = start_clash()
-        if not clash:
-            print("❌ Clash.meta 启动失败，中止")
-            with open("speed.txt", "w", encoding="utf-8") as f:
-                f.write("Clash.meta 启动失败\n")
-            return
-
-        try:
-            r = requests.get("http://8.8.8.8", timeout=5)
-            print(f"✅ 网络连通性测试: 8.8.8.8 返回状态码 {r.status_code}")
-        except Exception as e:
-            print(f"❌ 网络连通性测试失败: {str(e)}")
-
-        names = [p["name"] for p in proxies]
-        print(f"正在测试 {len(names)} 个代理...")
+    # 并发测试节点
+    valid_nodes = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        futures = [executor.submit(test_node, node) for node in unique_nodes]
         
-        valid = []
-        for test_url in TEST_URLS:
-            print(f"\n使用测试 URL: {test_url}")
-            results = asyncio.run(run_tests(names, test_url))
-            for i, (name, delay) in enumerate(results):
-                if delay is not None:
-                    valid.append((proxies[i], delay))
-            if valid:
-                break
+        for future in concurrent.futures.as_completed(futures):
+            result = future.result()
+            if result:
+                valid_nodes.append(result)
+                print(f"Valid node: {result['node']['name']} ({result['latency']:.2f}ms)")
 
-        print(f"找到 {len(valid)} 个有效节点")
-        valid.sort(key=lambda x: x[1])
-        top = valid[:TOP_N]
+    # 按延迟排序
+    sorted_nodes = sorted(valid_nodes, key=lambda x: x['latency'])
+    top_50 = sorted_nodes[:50]
 
-        with open("speed.txt", "w", encoding="utf-8") as f:
-            if not top:
-                print("❌ 未找到有效节点")
-                f.write("未找到有效节点\n")
-            else:
-                for item in top:
-                    f.write(f"{item[0]['name']}: {item[1]} ms\n")
+    # 生成nodes.yml
+    output_proxies = [item['node'] for item in top_50]
+    with open('nodes.yml', 'w', encoding='utf-8') as f:
+        yaml.dump({'proxies': output_proxies}, f, allow_unicode=True, sort_keys=False)
 
-        if top:
-            with open("nodes.yml", "w", encoding="utf-8") as f:
-                yaml.dump({"proxies": [item[0] for item in top]}, f, allow_unicode=True)
-            print(f"\n🎉 完成！保存了 {len(top)} 个节点到 nodes.yml 和 speed.txt")
-        else:
-            print("❌ 未生成 nodes.yml，因为没有有效节点")
+    # 生成speed.txt
+    with open('speed.txt', 'w', encoding='utf-8') as f:
+        for item in top_50:
+            f.write(f"{item['node']['name']}: {item['latency']:.2f}ms\n")
 
-    except Exception as e:
-        print(f"❌ 脚本执行失败: {str(e)}")
-        with open("speed.txt", "w", encoding="utf-8") as f:
-            f.write(f"脚本执行失败: {str(e)}\n")
-        with open("clash.log", "a", encoding="utf-8") as f:
-            f.write(f"脚本执行失败: {str(e)}\n")
-    finally:
-        if 'clash' in locals():
-            clash.terminate()
-            clash.wait()
-            print("Clash 已终止")
+    print(f"Successfully generated nodes.yml with {len(top_50)} nodes")
+    print(f"Speed results saved to speed.txt")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
