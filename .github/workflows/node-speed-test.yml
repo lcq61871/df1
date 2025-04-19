@@ -24,36 +24,17 @@ jobs:
           python3-pip
 
     - name: Install Hysteria2
-      run: |
-        # 使用官方安装脚本
-        bash <(curl -fsSL https://get.hy2.sh/)
+      run: bash <(curl -fsSL https://get.hy2.sh/)
 
     - name: Install Xray-core
       run: |
-        # 获取最新版本号
         LATEST_VERSION=$(curl -s "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | jq -r .tag_name)
-        
-        # 清理旧文件
         sudo rm -rf /usr/local/bin/xray* /tmp/xray
-        
-        # 下载并解压
         curl -fL -o /tmp/xray.zip \
           "https://github.com/XTLS/Xray-core/releases/download/$LATEST_VERSION/Xray-linux-64.zip"
-        
-        # 验证文件完整性
-        if [ $(stat -c%s /tmp/xray.zip) -lt 1000000 ]; then
-          echo "文件下载不完整！"
-          exit 1
-        fi
-        
-        # 强制解压到临时目录
         mkdir -p /tmp/xray
         unzip -o -d /tmp/xray /tmp/xray.zip
-        
-        # 安装二进制文件
         sudo install -m 755 /tmp/xray/xray /usr/local/bin/
-        
-        # 验证安装
         xray version
 
     - name: Install Python dependencies
@@ -64,14 +45,6 @@ jobs:
       env:
         DEBUG: 'true'
 
-    - name: Upload results
-      uses: actions/upload-artifact@v4
-      with:
-        name: proxy-results
-        path: |
-          nodes.yml
-          speed.txt
-
     - name: Auto commit
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
@@ -79,3 +52,8 @@ jobs:
         file_pattern: |
           nodes.yml
           speed.txt
+        skip_fetch: true
+        skip_dirty_check: true
+        allow_empty_commit: true
+        commit_user_name: "GitHub Actions"
+        commit_user_email: "actions@github.com"
