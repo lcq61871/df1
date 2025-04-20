@@ -96,8 +96,7 @@ def test_node(node):
 def main():
     # 加载节点源
     sources = [
-        "https://cdn.jsdelivr.net/gh/mfbpn/tg_mfbpn_subs@refs/heads/main/trials/2.flybar20.cc.yaml",
-        "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@main/tr11ial.yaml"
+        "https://cdn.jsdelivr.net/gh/mfbpn/tg_mfbpn_subs@refs/heads/main/trials/2.flybar20.cc.yaml"
     ]
     
     all_nodes = []
