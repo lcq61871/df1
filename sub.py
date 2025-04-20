@@ -111,7 +111,7 @@ def main():
     log("=== 节点质量检测系统启动 ===")
     
     sources = [
-        "https://your.subscription.link/nodes.yaml",
+        "https://test1.testspeed.sbs/689e5c9c-3c97-4eaf-9716-287dffa6afe0?clash",
         "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@main/trial.yaml"
     ]
     all_nodes = load_nodes(sources)
