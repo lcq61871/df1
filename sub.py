@@ -7,19 +7,18 @@ import concurrent.futures
 import random
 
 DEBUG = True
-TIMEOUT = 30  # 总超时时间
-TEST_URLS = [  # 多测试源保障可用性
+TIMEOUT = 30
+TEST_URLS = [
     "https://www.gstatic.com/generate_204",
     "http://cp.cloudflare.com/generate_204",
     "http://connectivitycheck.android.com/generate_204"
 ]
-SPEED_TEST_URL = "https://speed.cloudflare.com/__down?bytes=1000000"  # 1MB测试文件
-MAX_WORKERS = 6  # 精确控制并发数
+SPEED_TEST_URL = "https://speed.cloudflare.com/__down?bytes=1000000"
+MAX_WORKERS = 6
 TOP_NODES = 50
-RETRY_COUNT = 2  # 节点重试次数
+RETRY_COUNT = 2
 
 def log(message):
-    """增强型日志记录"""
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
     log_msg = f"[{timestamp}] {message}"
     print(log_msg)
@@ -27,16 +26,13 @@ def log(message):
         f.write(log_msg + "\n")
 
 def test_ss(node):
-    """精准SS节点测试"""
+    """SS节点精准测试"""
     for attempt in range(RETRY_COUNT + 1):
         try:
-            # 动态选择测试URL
             test_url = random.choice(TEST_URLS)
-            
-            # 构建代理URL
             proxy_url = f"socks5://{node['cipher']}:{node['password']}@{node['server']}:{node['port']}"
             
-            # 基础连通性测试
+            # 基础连通测试
             base_cmd = [
                 'curl', '-sS',
                 '--connect-timeout', '15',
@@ -55,11 +51,10 @@ def test_ss(node):
                 timeout=25
             )
             
-            # 解析结果
             if result.returncode == 0 and '204' in result.stdout:
                 latency = float(result.stdout.split()[1]) * 1000
                 
-                # 真实速度测试
+                # 速度测试
                 speed_cmd = [
                     'curl', '-s',
                     '--connect-timeout', '15',
@@ -79,13 +74,14 @@ def test_ss(node):
                 )
                 
                 if speed_result.returncode == 0:
-                    speed = float(speed_result.stdout)  # bytes/sec
-                    score = ( (1000/(latency+1)) * 0.4 + (speed/1024) * 0.6
+                    speed = float(speed_result.stdout)
+                    # 修正后的评分公式
+                    score = (1000 / (latency + 1) * 0.4) + (speed / 1024 * 0.6)
                     log(f"✅ SS验证成功 {node['name']} | 延迟: {latency:.2f}ms | 速度: {speed/1024:.2f}KB/s")
                     return {'node': node, 'latency': latency, 'speed': speed, 'score': score}
             
             log(f"❌ SS测试失败({attempt+1}次) {node['name']} [错误: {result.stderr.strip()[:50]}]")
-            time.sleep(2)  # 重试间隔
+            time.sleep(2)
             
         except Exception as e:
             log(f"SS测试异常 {node['name']}: {str(e)}")
@@ -93,7 +89,6 @@ def test_ss(node):
     return None
 
 def load_nodes(sources):
-    """智能加载节点"""
     all_nodes = []
     for url in sources:
         try:
@@ -115,24 +110,21 @@ def load_nodes(sources):
 def main():
     log("=== 节点质量检测系统启动 ===")
     
-    # 加载节点源（实际使用时替换为您的订阅源）
     sources = [
-        "https://raw.githubusercontent.com/mfbpn/tg_mfbpn_sub/refs/heads/main/trial",
+        "https://your.subscription.link/nodes.yaml",
         "https://backup.subscription.link/nodes.yml"
     ]
     all_nodes = load_nodes(sources)
     
-    # 去重处理
     seen = set()
     unique_nodes = []
     for node in all_nodes:
         key = f"{node.get('type')}_{node.get('server')}_{node.get('port')}"
-        if key not in seen and node.get('type') == 'ss':  # 仅测试SS节点
+        if key not in seen and node.get('type') == 'ss':
             seen.add(key)
             unique_nodes.append(node)
     log(f"🔍 待测SS节点数: {len(unique_nodes)}")
 
-    # 并发测试
     valid_nodes = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = {executor.submit(test_ss, n): n for n in unique_nodes}
@@ -142,11 +134,9 @@ def main():
             if result:
                 valid_nodes.append(result)
 
-    # 结果处理
     valid_nodes.sort(key=lambda x: -x['score'])
     best_nodes = valid_nodes[:TOP_NODES]
     
-    # 生成结果文件
     os.makedirs("output", exist_ok=True)
     
     with open("output/nodes.yml", "w") as f:
