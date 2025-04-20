@@ -112,7 +112,7 @@ def main():
     
     sources = [
         "https://your.subscription.link/nodes.yaml",
-        "https://backup.subscription.link/nodes.yml"
+        "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@main/trial.yaml"
     ]
     all_nodes = load_nodes(sources)
     
