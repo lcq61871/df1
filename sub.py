@@ -187,8 +187,8 @@ def main():
     
     # 加载节点源（需替换为实际订阅链接）
     sources = [
-        "https://your.actual.subscription/link1.yaml",
-        "https://your.actual.subscription/link2.yaml"
+        "https://raw.githubusercontent.com/lcq61871/NoMoreWalls/refs/heads/master/snippets/nodes_TW.meta.yml",
+        "https://cdn.jsdelivr.net/gh/1wyy/tg_mfbpn_sub@main/trial.yaml"
     ]
     
     all_nodes = []
