@@ -117,7 +117,7 @@ def main():
     
     # 加载节点源（实际使用时替换为您的订阅源）
     sources = [
-        "https://your.subscription.link/nodes.yaml",
+        "https://raw.githubusercontent.com/mfbpn/tg_mfbpn_sub/refs/heads/main/trial",
         "https://backup.subscription.link/nodes.yml"
     ]
     all_nodes = load_nodes(sources)
