@@ -1,8 +1,8 @@
-name: Real Speed Test
+name: Premium Node Filter
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 */3 * * *'  # 每6小时运行
   workflow_dispatch:
 
 permissions:
@@ -11,13 +11,13 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 60
     
     steps:
-    - name: Checkout code
+    - name: 检出代码
       uses: actions/checkout@v4
       
-    - name: Install dependencies
+    - name: 安装基础依赖
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -25,23 +25,26 @@ jobs:
           python3 \
           python3-pip
 
-    - name: Setup Python
+    - name: 配置Python环境
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: "3.10"
         
-    - name: Install PyYAML
+    - name: 安装PyYAML
       run: pip install pyyaml
       
-    - name: Run speed test
+    - name: 修复DNS解析
+      run: echo "185.199.108.133 raw.githubusercontent.com" | sudo tee -a /etc/hosts
+      
+    - name: 运行测试脚本
       run: |
         chmod +x sub.py
         python3 sub.py
         
-    - name: Commit results
+    - name: 提交结果
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "Auto-Update Nodes (Real Speed) [skip ci]"
+        commit_message: "自动更新优质节点 [skip ci]"
         file_pattern: |
           output/nodes.yml
           output/speed.txt
