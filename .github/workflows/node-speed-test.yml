@@ -1,50 +1,44 @@
-name: Premium Node Filter
+name: Node Validator
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # 每6小时运行
+    - cron: '0 */6 * * *'  # 每6小时运行
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  test:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    
+    timeout-minutes: 45
     steps:
-    - name: 检出代码
+    - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: 安装基础依赖
+
+    - name: Install system tools
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           curl \
+          netcat-openbsd \
           python3 \
           python3-pip
 
-    - name: 配置Python环境
+    - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: "3.10"
-        
-    - name: 安装PyYAML
+        python-version: '3.10'
+
+    - name: Install dependencies
       run: pip install pyyaml
-      
-    - name: 修复DNS解析
-      run: echo "185.199.108.133 raw.githubusercontent.com" | sudo tee -a /etc/hosts
-      
-    - name: 运行测试脚本
-      run: |
-        chmod +x sub.py
-        python3 sub.py
-        
-    - name: 提交结果
+
+    - name: Run validation
+      run: python3 sub.py
+      env:
+        DEBUG: 'true'
+
+    - name: Commit results
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        commit_message: "自动更新优质节点 [skip ci]"
+        commit_message: "自动更新节点列表"
         file_pattern: |
-          output/nodes.yml
-          output/speed.txt
+          nodes.yml
+          speed.txt
