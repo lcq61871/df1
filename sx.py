@@ -9,14 +9,12 @@ import time
 target_channels = [
     'CCTV1 综合[1920x1080]', 'CCTV2 财经[1920x1080]', 'CCTV13 新闻[1920x1080]',
     'CCTV世界地理[1920x1080]', 'CCTV央视文化精品[1920x1080]',
-    '湖南卫视[1920x1080]', '湖南都市高清', '深圳都市频道',
-    'EYETV 旅游', '亞洲旅遊', '美食星球',
-    'TVN', 'tvN', '龍祥時代',
-    'TVB星河', '千禧经典', '功夫台',
+    'CCTV风云足球[1920x1080]', 'CCTV高尔夫·网球[1920x1080]',
+    'CCTV央视台球[1920x1080]', 'CCTV怀旧剧场[1920x1080]',
+    '湖南卫视[1920x1080]', '湖南都市高清 12M', '深圳都市频道',
+    '湖南卫视高清 12M', '亞洲旅遊', '美食星球',
     '亚洲武侠', 'Now爆谷台', 'Now星影台',
-    '天映经典', '麥哲倫頻道', '民视旅游',
-    '龍祥電影', 'Sun TV HD', 'SUN MUSIC', 'FASHION TV',
-    'Playboy Plus', '欧美艺术', '美国家庭'
+    '功夫台', '欧美艺术'， '美国家庭'
 ]
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
@@ -47,32 +45,7 @@ except FileNotFoundError:
 
 remote_urls = [
     'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
-    'https://raw.githubusercontent.com/80947108/888/6253b4e896ca08dc0ef16f9cf64f182d9d4116e6/tv/FGlive.m3u',
-    'https://raw.githubusercontent.com/twolater/iptv2025/964373950eec78e414de1063c41f157fc31f1e19/asia.m3u',
-    'https://raw.githubusercontent.com/chiang1102/a/refs/heads/main/test1.txt',
-    'https://raw.githubusercontent.com/iptvjs/iptv/eb2f1da02e1bb566457ad97dd39b447bcec1a9cd/ew_tw.m3u',
-    'https://raw.githubusercontent.com/iptvjs/iptv/eb2f1da02e1bb566457ad97dd39b447bcec1a9cd/hujingguang_cnTV_AutoUpdate.m3u',
-    'https://freetv.fun/test_channels_taiwan.m3u',
-    'https://live.iptv365.org/live.txt',
-    'http://4gtv.mumi.rip:9877/index.m3u8',
-    'https://mytvb.netlify.app/mytvsuperA.m3u',
-    'https://raw.githubusercontent.com/ddhola/file/b072c9e0d44be5070240a98c1977c82dfcb5c029/1027',
     'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
-    'https://gcore.jsdelivr.net/gh/Guovin/iptv-api@gd/output/result.m3u',
-    'https://raw.githubusercontent.com/quninainaixi/quninainaixi/refs/heads/main/DSJ2024417.txt',
-    'https://raw.githubusercontent.com/meerl/iptr/refs/heads/main/iptv_list.txt',
-    'https://raw.githubusercontent.com/XinMan939/ziyongm3u/d53f47ba6f73ff14acfba02b17cff652c88864f9/Taiwan.m3u',
-    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/other.m3u',
-    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/AKTV.m3u',
-    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/test.m3u',
-    'https://raw.githubusercontent.com/80947108/888/refs/heads/main/tv/FGlive.txt',
-    'https://tv.iill.top/m3u/Gather',
-    'https://raw.githubusercontent.com/KAN314go/k/bf079cc49e6c9595676e16f8f89069068acedc3e/Smart2.txt',
-    'https://raw.githubusercontent.com/windrise1217/mytv/815f85ac1ddb7aa318c70b74f475c46a44ca0ea0/tvlist.m3u',
-    'https://raw.githubusercontent.com/savetti1987/openclash/refs/heads/main/MyTV.m3u',
-    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/HKTW.m3u',
-    'https://raw.githubusercontent.com/twolater/iptv2025/refs/heads/main/tv.m3u',
-    'https://raw.githubusercontent.com/wing13535/dianshi/7e41cbcf21168a97d3361e1eb42bf0327481de2e/ZHIBO.txt',
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
 
