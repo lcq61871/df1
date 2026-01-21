@@ -5,6 +5,10 @@
       "url": "https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt"
     },
     {
+      "name": "epgpw",
+      "url": "https://raw.githubusercontent.com/fleung49/star/refs/heads/main/mit"    
+    }, 
+    {
       "name": "catvod",
       "type": 0,
       "url": "https://live.catvod.com/tv.m3u"
@@ -18,8 +22,12 @@
       "url": "https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt"    
     }, 
     {
-      "name": "epgpw",
-      "url": "https://raw.githubusercontent.com/fleung49/star/refs/heads/main/mit"    
+      "name": "测试1",
+      "url": "https://raw.githubusercontent.com/xiaolin330328/iptv/refs/heads/main/%E7%AC%AC%E4%B8%89%E4%B8%AA"    
+    }, 
+    {
+      "name": "测试2",
+      "url": "https://raw.githubusercontent.com/lizaifu2026/df/refs/heads/main/LN-CMCC-PLTV-DBWW.txt"    
     }, 
     {
       "name":"YanG-1989",
@@ -40,6 +48,7 @@
 } 
 
  
+
 
 
 
