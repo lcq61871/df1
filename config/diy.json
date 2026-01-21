@@ -7,6 +7,14 @@
       "url": "https://bc.188766.xyz/?ip=&mima=bingcha1130&json=true",
       "ua": "bingcha/1.1 (mianfeifenxiang) "
     },
+	{
+      "name": "咪视界",
+      "url": "https://raw.githubusercontent.com/tianli1680/iptv/refs/heads/main/%E5%92%AA%E8%A7%86%E7%95%8Cbc.m3u"    
+    }, 
+    {
+      "name": "冰茶体育",
+      "url": "https://raw.githubusercontent.com/tianli1680/iptv/refs/heads/main/%E5%86%B0%E8%8C%B6%E4%BD%93%E8%82%B2.m3u"
+    },
     {
       "name": "风云GD",
       "url": "https://gh-proxy.com/raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt"
