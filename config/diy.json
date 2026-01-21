@@ -1,0 +1,45 @@
+{
+  "lives": [
+    {
+      "name": "广东",
+      "url": "https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt"
+    },
+    {
+      "name": "catvod",
+      "type": 0,
+      "url": "https://live.catvod.com/tv.m3u"
+    },
+    {
+      "name": "jackTV",
+      "url": "https://php.946985.filegear-sg.me/jackTV.m3u"
+    },
+    {
+      "name": "湖南组播",
+      "url": "https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt"    
+    }, 
+    {
+      "name": "epgpw",
+      "url": "https://raw.githubusercontent.com/fleung49/star/refs/heads/main/mit"    
+    }, 
+    {
+      "name":"YanG-1989",
+      "url":"https://tv.iill.top/m3u/Gather",
+      "ua":"okhttp/3.15",
+      "epg":"https://epg.112114.xyz/?ch={name}&date={date}",
+      "logo":"https://epg.112114.xyz/logo/{name}.png"
+    },
+    {
+      "name": "测试",
+      "url": "https://raw.githubusercontent.com/alenin-zhang/IPTV/refs/heads/main/lenin.txt"
+    },
+    {
+      "name": "migu",
+      "url": "https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt"
+    } 
+  ]
+} 
+
+ 
+
+
+
