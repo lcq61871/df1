@@ -22,25 +22,6 @@
       "url": "https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt"    
     }, 
     {
-      "name": "测试1",
-      "url": "https://raw.githubusercontent.com/xiaolin330328/iptv/refs/heads/main/%E7%AC%AC%E4%B8%89%E4%B8%AA"    
-    }, 
-    {
-      "name": "测试2",
-      "url": "https://raw.githubusercontent.com/lizaifu2026/df/refs/heads/main/LN-CMCC-PLTV-DBWW.txt"    
-    }, 
-    {
-      "name":"YanG-1989",
-      "url":"https://tv.iill.top/m3u/Gather",
-      "ua":"okhttp/3.15",
-      "epg":"https://epg.112114.xyz/?ch={name}&date={date}",
-      "logo":"https://epg.112114.xyz/logo/{name}.png"
-    },
-    {
-      "name": "测试",
-      "url": "https://raw.githubusercontent.com/woshishiq1/hipy-drpy/refs/heads/main/aa999ok/CK/014/lib/666-live.txt"
-    },
-    {
       "name": "migu",
       "url": "https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt"
     } 
@@ -48,6 +29,7 @@
 } 
 
  
+
 
 
 
