@@ -9,15 +9,19 @@
     },
     {
       "name": "风云GD",
-      "url": "https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt"
+      "url": "https://gh-proxy.com/raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt"
     },
     {
       "name": "fleung49",
-      "url": "https://raw.githubusercontent.com/fleung49/star/refs/heads/main/mit"    
+      "url": "https://github.boki.moe/https://raw.githubusercontent.com/fleung49/star/refs/heads/main/mit"    
+    }, 
+    {
+      "name": "English频道",
+      "url": "https://github.boki.moe/https://raw.githubusercontent.com/oqs2476/m3u/main/Test.txt"    
     }, 
     {
       "name": "湖南组播",
-      "url": "https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt"    
+      "url": "https://github.boki.moe/https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt"    
     }, 
     {
             "name": "CCTV4K纪录",
@@ -42,7 +46,7 @@
         },
     {
       "name": "migu",
-      "url": "https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt"
+      "url": "https://github.boki.moe/https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt"
     } 
   ]
 } 
