@@ -8,11 +8,11 @@
       "ua": "bingcha/1.1 (mianfeifenxiang) "
     },
     {
-      "name": "广东",
+      "name": "风云GD",
       "url": "https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt"
     },
     {
-      "name": "epgpw",
+      "name": "fleung49",
       "url": "https://raw.githubusercontent.com/fleung49/star/refs/heads/main/mit"    
     }, 
     {
@@ -26,15 +26,20 @@
             "ua": "okhttp/3.15",
             "epg": "https://epg.cdn.loc.cc?ch={name}&date={date}"
     },
-    {
-      "name": "catvod",
-      "type": 0,
-      "url": "https://live.catvod.com/tv.m3u"
-    },
-    {
-      "name": "jackTV",
-      "url": "https://php.946985.filegear-sg.me/jackTV.m3u"
-    },
+        {
+            "name": "CATVOD",
+            "type": 0,
+            "url": "https://live.catvod.com/tv.m3u",
+            "ua": "Goiptv/8.8.8",
+            "epg": "https://epg.cdn.loc.cc?ch={name}&date={date}"
+        },
+        {
+            "name": "IPTV专用",
+            "type": 0,
+            "url": "https://gh-proxy.com/raw.githubusercontent.com/alenin-zhang/IPTV/master/lenin.txt",
+            "ua": "okhttp/3.15",
+            "epg": "https://epg.cdn.loc.cc?ch={name}&date={date}"
+        },
     {
       "name": "migu",
       "url": "https://raw.githubusercontent.com/develop202/migu_video/refs/heads/main/interface.txt"
@@ -43,6 +48,7 @@
 } 
 
  
+
 
 
 
