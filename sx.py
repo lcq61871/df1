@@ -144,7 +144,7 @@ for channel, urls in grouped_streams.items():
 
 # ===== 写入 filtered_streams.txt =====
 with open(out_path, 'w', encoding='utf-8') as f:
-    f.write("abc频道,#genre#\n")
+    f.write("常看频道,#genre#\n")
     for channel, urls in sorted(final_streams.items()):
         for url in urls:
             f.write(f"{channel}, {url}\n")
