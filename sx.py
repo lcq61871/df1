@@ -11,8 +11,8 @@ target_channels = [
     'CCTV5', 'CCTV5+', 'CCTV8',
     'CCTV13', 'CCTV-4',
     'CCTV-5', 'CCTV-8', '鳳凰中文',
-    'CCTV怀旧剧场[1920x1080]', '功夫台', '澳視澳門',
-	'湖南卫视[1920x1080]', '湖南都市高清 12M', '深圳都市频道',
+    '凤凰资讯', '凤凰香港', '澳視澳門',
+	'澳视卫星', '湖南都市高清 12M', '娱乐新闻',
     '亚洲武侠', 'Now爆谷台', 'Now星影台',
     '千禧經典', 'TVB-金曲', '美国家庭'
 ]
@@ -46,6 +46,7 @@ except FileNotFoundError:
 remote_urls = [
     'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
     'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
+	'https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
 
