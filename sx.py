@@ -7,14 +7,14 @@ import time
 
 # ===== 参数配置 =====
 target_channels = [
-    'CCTV1', 'CCTV2', 'CCTV4',
-    'CCTV5', 'CCTV5+', 'CCTV8',
-    'CCTV13', 'CCTV-4',
-    'CCTV-5', 'CCTV-8', '鳳凰中文',
+    '1CCTV1', '1CCTV2', '1CCTV4',
+    '1CCTV5', '1CCTV5+', '1CCTV8',
+    '1CCTV13', 'CCTV4[1920*1080]',
+    'CCTV5[1920*1080]', 'CCTV8[1920*1080]', '鳳凰中文',
     '凤凰资讯', '凤凰香港', '澳視澳門',
-	'澳视卫星', '湖南都市高清 12M', '娱乐新闻',
-    '亚洲武侠', 'Now爆谷台', 'Now星影台',
-    '千禧經典', 'TVB-金曲', '美国家庭'
+	'1澳视卫星', '1湖南都市高清 12M', '1娱乐新闻',
+    '1亚洲武侠', 'CCTV-4 中文国际', 'CCTV-5 体育',
+    '1千禧經典', '1TVB-金曲', 'CCTV-8 电视剧'
 ]
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
