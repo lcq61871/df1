@@ -13,8 +13,8 @@ target_channels = [
     'CCTV5[1920*1080]', 'CCTV8[1920*1080]', '鳳凰中文',
     '凤凰资讯', '凤凰香港', '澳視澳門',
 	'1澳视卫星', '1湖南都市高清 12M', '1娱乐新闻',
-    '1亚洲武侠', 'CCTV-4 中文国际', 'CCTV-5 体育',
-    '1千禧經典', '1TVB-金曲', 'CCTV-8 电视剧'
+    '1亚洲武侠', 'CCTV-4', 'CCTV-5',
+    'CCTV-8', 'CCTV-12', '1CCTV-8 电视剧'
 ]
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
@@ -46,7 +46,7 @@ except FileNotFoundError:
 remote_urls = [
 	'https://raw.githubusercontent.com/pxiptv/live/bd781789b21bb00f650183bfb374422a1016785e/live.txt',
     'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
-    '1https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
+    'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
 	'1https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
