@@ -13,8 +13,8 @@ target_channels = [
     'CCTV5[1920*1080]', 'CCTV8[1920*1080]', '凤凰中文',
     '凤凰资讯', '凤凰香港', '澳視澳門',
 	'凤凰中文', '1湖南都市高清 12M', '1娱乐新闻',
-    '1亚洲武侠', 'CCTV-4', 'CCTV-5',
-    'CCTV-8', 'CCTV-12', '1CCTV-8 电视剧'
+    '1亚洲武侠', '1CCTV-4', '1CCTV-5',
+    '1CCTV-8', '1CCTV-12', '1CCTV-8 电视剧'
 ]
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
