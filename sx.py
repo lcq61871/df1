@@ -46,7 +46,7 @@ except FileNotFoundError:
 remote_urls = [
 	'https://raw.githubusercontent.com/pxiptv/live/bd781789b21bb00f650183bfb374422a1016785e/live.txt',
     'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
-    'https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
+    '1https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
 	'1https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
