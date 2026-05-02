@@ -11,7 +11,7 @@ target_channels = [
     '1CCTV5', '1CCTV5+', '1CCTV8',
     '1CCTV12', '1CCTV4[1920*1080]',
     '1CCTV5[1920*1080]', '1CCTV8[1920*1080]', '凤凰中文',
-    '凤凰资讯', '凤凰香港', '澳視澳門',
+    '凤凰资讯', '凤凰香港', '1澳視澳門',
 	'凤凰中文', '1湖南都市高清 12M', '1娱乐新闻',
     '1亚洲武侠', 'CCTV-4HD', 'CCTV-5HD',
     'CCTV-8HD', 'CCTV-12HD', '1CCTV-8 电视剧'
@@ -48,7 +48,7 @@ remote_urls = [
     '1https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
     '1https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
 	'https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
-    'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
+    '1https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
 
 # 拉取远程数据
