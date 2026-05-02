@@ -7,14 +7,14 @@ import time
 
 # ===== 参数配置 =====
 target_channels = [
-    '1CCTV1', '1CCTV2', 'CCTV4',
-    'CCTV5', '1CCTV5+', 'CCTV8',
-    'CCTV12', 'CCTV4[1920*1080]',
-    'CCTV5[1920*1080]', 'CCTV8[1920*1080]', '凤凰中文',
+    '1CCTV1', '1CCTV2', '1CCTV4',
+    '1CCTV5', '1CCTV5+', '1CCTV8',
+    '1CCTV12', '1CCTV4[1920*1080]',
+    '1CCTV5[1920*1080]', '1CCTV8[1920*1080]', '凤凰中文',
     '凤凰资讯', '凤凰香港', '澳視澳門',
 	'凤凰中文', '1湖南都市高清 12M', '1娱乐新闻',
-    '1亚洲武侠', '1CCTV-4', '1CCTV-5',
-    '1CCTV-8', '1CCTV-12', '1CCTV-8 电视剧'
+    '1亚洲武侠', 'CCTV-4HD', 'CCTV-5HD',
+    'CCTV-8HD', 'CCTV-12HD', '1CCTV-8 电视剧'
 ]
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
@@ -44,10 +44,10 @@ except FileNotFoundError:
     print("⚠️ 本地文件未找到")
 
 remote_urls = [
-	'https://raw.githubusercontent.com/pxiptv/live/bd781789b21bb00f650183bfb374422a1016785e/live.txt',
-    'https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
+	'1https://raw.githubusercontent.com/pxiptv/live/bd781789b21bb00f650183bfb374422a1016785e/live.txt',
+    '1https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
     '1https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
-	'1https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
+	'https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
     'https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
 
