@@ -47,7 +47,7 @@ remote_urls = [
 	'https://raw.githubusercontent.com/q1017673817/iptvz/main/组播_广东电信.txt',
     '1https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
     '1https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
-	'1https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
+	'https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
     '1https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
 
