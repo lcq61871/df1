@@ -7,9 +7,9 @@ import time
 
 # ===== 参数配置 =====
 target_channels = [
-    '1CCTV1', '1CCTV2', '1CCTV4',
-    '1CCTV5', '1CCTV5+', '1CCTV8',
-    '1CCTV12', '1CCTV4[1920*1080]',
+    '1CCTV1', '1CCTV2', 'CCTV-4',
+    'CCTV-5', '1CCTV5+', 'CCTV-8',
+    'CCTV-12', '1CCTV4[1920*1080]',
     '1CCTV5[1920*1080]', '1CCTV8[1920*1080]', '凤凰中文',
     '凤凰资讯', '凤凰香港', '111澳視澳門',
 	'凤凰中文', '1湖南都市高清 12M', '1娱乐新闻',
@@ -45,7 +45,7 @@ except FileNotFoundError:
 
 remote_urls = [
 	'https://raw.githubusercontent.com/q1017673817/iptvz/main/组播_广东电信.txt',
-    '1https://raw.githubusercontent.com/luoye20230624/hndxzb/refs/heads/main/iptv_list.txt',
+    'https://raw.githubusercontent.com/luoye20230624/JunTV/main/output/ipv4/result.txt',
     '1https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
 	'https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
     '1https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
