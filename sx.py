@@ -44,7 +44,7 @@ except FileNotFoundError:
     print("⚠️ 本地文件未找到")
 
 remote_urls = [
-	'https://raw.githubusercontent.com/q1017673817/iptvz/main/组播_广东电信.txt',
+	'https://gh-proxy.org/https://raw.githubusercontent.com/fafa002/yf2025/refs/heads/main/yiyifafa.txt',
     'https://raw.githubusercontent.com/luoye20230624/JunTV/main/output/ipv4/result.txt',
     '1https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
 	'https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
