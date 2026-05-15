@@ -7,7 +7,7 @@ import time
 
 # ===== 参数配置 =====
 target_channels = [
-    '1CCTV1', '1CCTV2', 'CCTV-4',
+    '广西卫视', '1CCTV2', 'CCTV-4',
     'CCTV-5', '1CCTV5+', 'CCTV-8',
     'CCTV-12', '1CCTV4[1920*1080]',
     '1CCTV5[1920*1080]', '1CCTV8[1920*1080]', '凤凰中文',
@@ -46,7 +46,7 @@ except FileNotFoundError:
 remote_urls = [
 	'https://gh-proxy.org/https://raw.githubusercontent.com/fafa002/yf2025/refs/heads/main/yiyifafa.txt',
     'https://raw.githubusercontent.com/luoye20230624/JunTV/main/output/ipv4/result.txt',
-    '1https://raw.githubusercontent.com/ngdikman/hksar/refs/heads/main/dianxin.txt',
+    'https://gh-proxy.com/raw.githubusercontent.com/alenin-zhang/IPTV/master/lenin.txt',
 	'https://raw.githubusercontent.com/JFApril/D/refs/heads/main/TestLive.txt',
     '1https://raw.githubusercontent.com/lcq61871/iptvz/refs/heads/main/maotv.txt'
 ]
