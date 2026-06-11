@@ -7,7 +7,7 @@ import time
 
 # ===== 参数配置 =====
 target_channels = [
-    '广西卫视', 'CCTV-1', 'CCTV-4',
+    '1广西卫视', 'CCTV-1', 'CCTV-4',
     'CCTV-5', '1CCTV5+', 'CCTV-8',
     'CCTV-12', '1CCTV4[1920*1080]',
     '1CCTV5[1920*1080]', '1CCTV8[1920*1080]', '凤凰中文',
