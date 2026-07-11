@@ -9,12 +9,12 @@ import time
 target_channels = [
     '1广西卫视', 'CCTV-1', 'CCTV-4',
     'CCTV-5', '1CCTV5+', 'CCTV-8',
-    'CCTV-12', '1CCTV4[1920*1080]',
-    '1CCTV5[1920*1080]', '1CCTV8[1920*1080]', '凤凰中文',
+    'CCTV-12', 'CCTV-01咪咕',
+    'CCTV-04咪咕', 'CCTV-08咪咕', '凤凰中文',
     '凤凰资讯', '凤凰香港', '111澳視澳門',
-	'凤凰中文', '1湖南都市高清 12M', 'CCTV-1综合',
-    '1亚洲武侠', 'CCTV-4中文国际', 'CCTV-5体育',
-    'CCTV-8电视剧', 'CCTV-12社会与法', '1CCTV-8 电视剧'
+	'凤凰中文', '1湖南都市高清 12M', 'CCTV1综合',
+    '1亚洲武侠', 'CCTV4中文国际', 'CCTV5体育',
+    'CCTV8电视剧', 'CCTV12社会与法', '1CCTV-8电视剧'
 ]
 
 exclude_keywords = ['chinamobile', 'tvgslb', '购物', '理财']
