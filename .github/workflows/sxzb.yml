@@ -1,6 +1,5 @@
 name: Run sx.py daily to filter IPTV streams
 
-于:
   schedule:
     # 每天 UTC 时间 0:00 和 12:00 运行（对应北京时间 8:00 和 20:00）
     - cron: '0 0,12 * * *'
