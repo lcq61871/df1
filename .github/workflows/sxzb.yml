@@ -1,21 +1,21 @@
-name: 每日定时抓取组播直播源
+name: 定时抓取组播直播源
 
 于:
   schedule:
-    # 每天 UTC 时间 20:00 (北京时间 早上 04:00) 自动触发
+    # 每天 UTC 20:00 (北京时间 早上 04:00) 自动触发
     - cron: '0 20 * * *'
-  workflow_dispatch: # 支持在 GitHub 页面手动点击按钮触发运行
+  workflow_dispatch: # 支持手动点击触发
 
 jobs:
-  build-and-run:
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
       - name: 检出当前仓库代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 设置 Python 环境
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -28,9 +28,9 @@ jobs:
         run: |
           python fetch_iptv.py
 
-      - name: 提交并推送到仓库
+      - name: 提交更新到仓库
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add combined_telecom_iptv.txt
+          git add combined_telecom_iptv.txt || true
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto Update: 自动更新组播直播源 [$(date +'%Y-%m-%d %H:%M:%S')]" && git push)
