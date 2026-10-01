@@ -1,57 +1,36 @@
-name: Run sx.py daily to filter IPTV streams
+name: 每日定时抓取组播直播源
 
-on:
+于:
   schedule:
-    # 每天在上海时间 8:00 和 20:00 运行，即 UTC 时间的 0:00 和 12:00
-   - cron: '0 0/6 * * *'  # 0 0,12 表示 UTC 时间的 0:00 和 12:00
-  workflow_dispatch:  # 允许手动触发
+    # 每天 UTC 时间 20:00 (北京时间 早上 04:00) 自动触发
+    - cron: '0 20 * * *'
+  workflow_dispatch: # 支持在 GitHub 页面手动点击按钮触发运行
 
 jobs:
-  run_sx_script:
+  build-and-run:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: 检出当前仓库代码
+        uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: 设置 Python 环境
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.10'
 
-      - name: Install dependencies
+      - name: 安装依赖
         run: |
-          pip install requests  # 安装 requests 库
+          python -m pip install --upgrade pip
+          pip install requests
 
-      - name: Remove old filtered_streams.txt if exists
+      - name: 执行抓取脚本
         run: |
-          if [ -f filtered_streams.txt ]; then
-            rm filtered_streams.txt
-            echo "Old filtered_streams.txt removed."
-          else
-            echo "No old filtered_streams.txt file to remove."
-          fi
+          python fetch_iptv.py
 
-      - name: Run sx.py script to filter streams
+      - name: 提交并推送到仓库
         run: |
-          echo "Running sx.py script..."
-          python sx.py
-
-      - name: Check if filtered_streams.txt was generated
-        run: |
-          echo "Checking if filtered_streams.txt exists..."
-          if [ -f filtered_streams.txt ]; then
-            echo "filtered_streams.txt generated successfully."
-          else
-            echo "filtered_streams.txt was not generated. Checking contents of current directory:"
-            ls -l
-            exit 1
-          fi
-
-      - name: Commit and push changes if filtered_streams.txt exists
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add filtered_streams.txt
-          git commit -m 'Update filtered IPTV streams' || echo "No changes to commit"
-          git push
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add combined_telecom_iptv.txt
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto Update: 自动更新组播直播源 [$(date +'%Y-%m-%d %H:%M:%S')]" && git push)
