@@ -1,19 +1,19 @@
-name: Run sx.py daily to filter IPTV streams
+name: IPTV Fetcher
 
+on:
   schedule:
-    # 每天 UTC 时间 0:00 和 12:00 运行（对应北京时间 8:00 和 20:00）
     - cron: '0 0,12 * * *'
-  workflow_dispatch: # 允许手动触发运行
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  run_sx_script:
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -25,7 +25,7 @@ jobs:
         run: |
           pip install requests
 
-      - name: Run sx.py script
+      - name: Run sx.py
         run: |
           python sx.py
 
@@ -34,4 +34,4 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add output_streams.txt || true
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update IPTV streams [$(date +'%Y-%m-%d %H:%M:%S')]" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update IPTV streams" && git push)
