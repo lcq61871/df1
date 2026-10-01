@@ -25,9 +25,9 @@ jobs:
         run: |
           pip install requests
 
-      - name: Run sx.py
+      - name: Run sxzb.py
         run: |
-          python sx.py
+          python sxzb.py
 
       - name: Commit and push changes
         run: |
