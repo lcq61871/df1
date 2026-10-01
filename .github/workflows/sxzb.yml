@@ -1,36 +1,38 @@
-name: 定时抓取组播直播源
+name: Run sx.py daily to filter IPTV streams
 
 于:
   schedule:
-    # 每天 UTC 20:00 (北京时间 早上 04:00) 自动触发
-    - cron: '0 20 * * *'
-  workflow_dispatch: # 支持手动点击触发
+    # 每天 UTC 时间 0:00 和 12:00 运行（对应北京时间 8:00 和 20:00）
+    - cron: '0 0,12 * * *'
+  workflow_dispatch: # 允许手动触发运行
+
+permissions:
+  contents: write
 
 jobs:
-  run-script:
+  run_sx_script:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 检出当前仓库代码
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 设置 Python 环境
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: 安装依赖
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install requests
 
-      - name: 执行抓取脚本
+      - name: Run sx.py script
         run: |
-          python fetch_iptv.py
+          python sx.py
 
-      - name: 提交更新到仓库
+      - name: Commit and push changes
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add combined_telecom_iptv.txt || true
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto Update: 自动更新组播直播源 [$(date +'%Y-%m-%d %H:%M:%S')]" && git push)
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add output_streams.txt || true
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update IPTV streams [$(date +'%Y-%m-%d %H:%M:%S')]" && git push)
