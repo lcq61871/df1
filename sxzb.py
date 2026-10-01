@@ -14,11 +14,8 @@ TARGET_FILES = [
 # GitHub Raw 基础路径
 BASE_URL = "https://raw.githubusercontent.com/q1017673817/iptvz/main/"
 
-# 远程 dszb.txt 基础直播源地址
-REMOTE_DSZB_URL = "https://raw.githubusercontent.com/lcq61871/iptvz/main/dszb.txt"
-
-# 最终生成的目标文件名
-OUTPUT_FILE = "904.txt"
+# 最终生成的新文件名
+OUTPUT_FILE = "output_streams.txt"
 
 
 def filter_cctv_channels(content_text):
@@ -45,23 +42,9 @@ def filter_cctv_channels(content_text):
 
 
 def main():
-    print("🚀 开始自动处理与合并直播源文件...")
-    final_lines = []
+    print("🚀 开始自动提取【q1017673817/iptvz】CCTV 组播直播源...")
+    combined_lines = []
 
-    # 1. 首先拉取基础文件 dszb.txt
-    print(f"🌐 正在拉取基础文件 dszb.txt...")
-    try:
-        r_dszb = requests.get(REMOTE_DSZB_URL, timeout=15)
-        if r_dszb.status_code == 200 and r_dszb.text.strip():
-            final_lines.append(r_dszb.text.strip())
-            print("✅ 成功拉取 dszb.txt")
-        else:
-            print(f"⚠️ 拉取 dszb.txt 失败 (HTTP {r_dszb.status_code})")
-    except Exception as e:
-        print(f"❌ 请求 dszb.txt 异常: {e}")
-
-    # 2. 依次提取 4 个组播文件中的 CCTV 频道并放在后面
-    print("\n🌐 正在拉取并提取 CCTV 组播直播源...")
     for file_name, genre_label in TARGET_FILES:
         # 对中文文件名进行 URL 编码（防止出现 404）
         encoded_name = urllib.parse.quote(file_name)
@@ -76,8 +59,8 @@ def main():
                     cctv_lines = filter_cctv_channels(content)
                     if cctv_lines:
                         # 添加你指定的央视分组标签
-                        final_lines.append(genre_label)
-                        final_lines.extend(cctv_lines)
+                        combined_lines.append(genre_label)
+                        combined_lines.extend(cctv_lines)
                         print(
                             f"✅ 成功获取并过滤 {file_name}，保留 {len(cctv_lines)} 个 CCTV 频道"
                         )
@@ -90,13 +73,12 @@ def main():
         except Exception as e:
             print(f"❌ 请求异常: {file_name}, 错误: {e}")
 
-    # 3. 写入最终文件 904.txt
-    if final_lines:
+    if combined_lines:
         with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-            f.write("\n".join(final_lines))
-        print(f"\n🎉 处理完成！生成新文件: {OUTPUT_FILE}")
+            f.write("\n".join(combined_lines))
+        print(f"🎉 处理完成！生成新文件: {OUTPUT_FILE}")
     else:
-        print("⚠️ 未拉取到有效数据，未能生成文件。")
+        print("⚠️ 未拉取到有效数据。")
 
 
 if __name__ == "__main__":
