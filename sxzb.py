@@ -8,7 +8,7 @@ ZUBO_ALL_URL = "https://raw.githubusercontent.com/q1017673817/iptvz/refs/heads/m
 TARGET_GROUPS = [
     ("安徽电信-组播1", "北央视,#genre#"),
     ("河南电信-组播2", "南央视,#genre#"),
-    ("广西电信-组播1", "东央视,#genre#"),
+    ("内蒙古电信-组播1", "东央视,#genre#"),
     ("云南电信-组播1", "西央视,#genre#"),
 ]
 
