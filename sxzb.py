@@ -6,10 +6,10 @@ ZUBO_ALL_URL = "https://raw.githubusercontent.com/q1017673817/iptvz/refs/heads/m
 
 # 需提取的目标分组名称及其对应的新分类标签
 TARGET_GROUPS = [
-    ("湖南电信-组播1", "北央视,#genre#"),
+    ("山西电信-组播1", "北央视,#genre#"),
     ("河南电信-组播1", "南央视,#genre#"),
-    ("安徽电信-组播1", "东央视,#genre#"),
-    ("云南电信-组播1", "西央视,#genre#"),
+    ("云南电信-组播1", "东央视,#genre#"),
+    ("青海电信-组播1", "西央视,#genre#"),
 ]
 
 # 输出文件
